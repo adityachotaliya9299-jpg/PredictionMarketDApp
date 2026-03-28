@@ -139,12 +139,13 @@ contract PredictionMarketInvariantTest is BaseTest {
         );
     }
 
-    /// @notice Contract ETH balance >= totalPool (fees may also be in balance)
+    /// @notice Contract ETH balance + already-claimed ETH >= totalPool (conservation)
     function invariant_contractBalanceCoverspPool() public view {
         PredictionMarket market = handler.market();
+        // After claims, ETH leaves the contract — but pool + claimed must cover total deposited
         assertTrue(
-            address(market).balance >= market.totalPool(),
-            "Balance < pool"
+            address(market).balance + handler.ghost_totalClaimed() >= market.totalPool(),
+            "Balance + claimed < pool"
         );
     }
 

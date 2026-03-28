@@ -5,6 +5,7 @@ import { IOracle } from "../interfaces/IOracle.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title MockOracle - A controllable oracle for testing and demo deployments
+/// @author Aditya Chotaliya
 /// @notice In production, replace with Chainlink Functions or AnyAPI oracle
 contract MockOracle is IOracle, Ownable {
     // ─── State ────────────────────────────────────────────────────────────────

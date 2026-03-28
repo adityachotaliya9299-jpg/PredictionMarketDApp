@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 /// @title IMarketFactory - Interface for the prediction market factory
+/// @author Aditya Chotaliya
 interface IMarketFactory {
     // ─── Structs ──────────────────────────────────────────────────────────────
 

@@ -58,7 +58,7 @@ contract MarketFactory is IMarketFactory, Ownable, Pausable {
         // Deterministic marketId from question + creator + timestamp
         marketId = keccak256(abi.encodePacked(question, msg.sender, block.timestamp));
 
-        // Deploy new PredictionMarket
+        // Deploy new PredictionMarket — factory itself is the market owner so it can pause/unpause
         PredictionMarket newMarket = new PredictionMarket(
             marketId,
             question,
@@ -66,7 +66,7 @@ contract MarketFactory is IMarketFactory, Ownable, Pausable {
             oracle,
             feeCollector,
             feeBps,
-            owner() // factory owner is market admin
+            address(this) 
         );
         market = address(newMarket);
 
@@ -139,7 +139,7 @@ contract MarketFactory is IMarketFactory, Ownable, Pausable {
     /// @notice Unpause an individual market
     function unpauseMarket(bytes32 marketId) external onlyOwner {
         if (_markets[marketId].marketAddress == address(0)) revert MarketNotFound();
-        PredictionMarket(payable(_markets[marketId].marketAddress)).pause();
+        PredictionMarket(payable(_markets[marketId].marketAddress)).unpause();
     }
 
     // ─── External: Views ──────────────────────────────────────────────────────

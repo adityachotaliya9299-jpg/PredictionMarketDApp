@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import { IOracle } from "./IOracle.sol";
 
 /// @title IPredictionMarket - Interface for a single prediction market pool
+/// @author Aditya Chotaliya
 interface IPredictionMarket {
     // ─── Structs ──────────────────────────────────────────────────────────────
 

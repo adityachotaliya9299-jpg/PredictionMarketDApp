@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 /// @title IOracle - Interface for prediction market oracle resolution
+/// @author Aditya Chotaliya
 interface IOracle {
     enum Outcome {
         UNRESOLVED,

@@ -176,7 +176,7 @@ contract PredictionMarketTest is BaseTest {
 
     function test_buyYesShares_reverts_whenPaused() public {
         vm.prank(owner);
-        market.pause();
+        factory.pauseMarket(marketId);
 
         vm.prank(alice);
         vm.expectRevert();
@@ -598,24 +598,26 @@ contract PredictionMarketTest is BaseTest {
     // ─────────────────────────────────────────────────────────────────────────
 
     function test_pause_owner() public {
+        // Market owner is the factory (address(this) in createMarket), so pause via factory
         vm.prank(owner);
         vm.expectEmit(false, false, false, true);
         emit IPredictionMarket.MarketPaused(true);
-        market.pause();
+        factory.pauseMarket(marketId);
         assertTrue(market.paused());
     }
 
     function test_unpause_owner() public {
         vm.prank(owner);
-        market.pause();
+        factory.pauseMarket(marketId);
         vm.prank(owner);
         vm.expectEmit(false, false, false, true);
         emit IPredictionMarket.MarketPaused(false);
-        market.unpause();
+        factory.unpauseMarket(marketId);
         assertFalse(market.paused());
     }
 
     function test_pause_reverts_notOwner() public {
+        // Direct call to market.pause() always reverts now (owner is factory contract)
         vm.prank(alice);
         vm.expectRevert();
         market.pause();

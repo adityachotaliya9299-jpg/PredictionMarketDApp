@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: "Inter", "Segoe UI", system-ui, sans-serif; background: #050508; color: #fff; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+/* LIGHT MODE - only change background and borders, NOT text colors */
+html.light body { background: #f1f5f9 !important; color: #0f172a !important; }
+html.light main { background: #f1f5f9 !important; }
+html.light .nb { background: rgba(248,250,252,0.95) !important; border-color: rgba(0,0,0,0.08) !important; }
+html.light .na:not(.on) { color: #475569 !important; }
+html.light .tb { border-color: rgba(0,0,0,0.15) !important; background: rgba(0,0,0,0.05) !important; color: #475569 !important; }
+html.light footer { background: #e2e8f0 !important; border-color: rgba(0,0,0,0.08) !important; }
+
+/* Fix invisible text in light mode - only target actual dark backgrounds */
+html.light [style*="background:#050508"] { background: #f1f5f9 !important; }
+html.light [style*="background: #050508"] { background: #f1f5f9 !important; }
+html.light [style*="color: white"] { color: #0f172a !important; }
+html.light [style*="color:white"] { color: #0f172a !important; }
+html.light [style*="color: #fff"] { color: #0f172a !important; }
+html.light [style*="color:#fff"] { color: #0f172a !important; }
+html.light [style*="color:#9ca3af"] { color: #475569 !important; }
+html.light [style*="color: #9ca3af"] { color: #475569 !important; }
+html.light [style*="color:#6b7280"] { color: #64748b !important; }
+html.light [style*="color: #6b7280"] { color: #64748b !important; }
+html.light [style*="color:#4b5563"] { color: #94a3b8 !important; }
+
+/* Fix card backgrounds in light mode */
+html.light [style*="rgba(255,255,255,0.04)"] { background: rgba(0,0,0,0.03) !important; }
+html.light [style*="rgba(255,255,255,0.03)"] { background: rgba(0,0,0,0.03) !important; }
+html.light [style*="rgba(0,0,0,0.3)"] { background: rgba(0,0,0,0.06) !important; }
+html.light [style*="rgba(255,255,255,0.08)"] { border-color: rgba(0,0,0,0.1) !important; }
+html.light [style*="rgba(255,255,255,0.06)"] { border-color: rgba(0,0,0,0.08) !important; }
+html.light [style*="rgba(255,255,255,0.1)"] { border-color: rgba(0,0,0,0.12) !important; }
+
+/* Keep gradient text working */
+.gradient-text {
+  background: linear-gradient(135deg, #22d3ee, #3b82f6, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+html.light .gradient-text { -webkit-text-fill-color: transparent !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+/* Inputs */
+input[type="number"] { -moz-appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+/* RainbowKit */
+[data-rk] button { opacity: 1 !important; }
+[data-rk] button:empty { display: none !important; }
+
+/* Animations */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+/* Navbar mobile */
+@media(max-width:768px) {
+  .px-nav { display:none !important; }
+  .px-ham { display:flex !important; }
+}
+
+/* Grid pattern */
+.grid-pattern {
+  background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* NAVBAR light mode fixes */
+html.light .nb { background: rgba(248,250,252,0.97) !important; }
+
+/* Fix navbar logo - Predict text */
+html.light .nb [style*="color:white"],
+html.light .nb [style*="color: white"] { color: #0f172a !important; }
+
+/* Fix hero dark background in light mode */
+html.light [style*="background:#050508"] { background: #f1f5f9 !important; }
+html.light [style*="minHeight:\"100vh\""][style*="background"] { background: #f1f5f9 !important; }
+html.light [style*="width:\"100%\""][style*="minHeight"] { background: #f1f5f9 !important; }
+html.light [style*="borderBottom:\"1px solid rgba(255,255,255"] { 
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%) !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
+
+/* Fix ALL white/light text in light mode except gradients and cyan */
+html.light [style*="color: white"]:not(.gradient-text):not([style*="cyan"]) { color: #0f172a !important; }
+html.light [style*="color:white"]:not(.gradient-text) { color: #0f172a !important; }
+html.light [style*="color: #fff"] { color: #0f172a !important; }
+html.light [style*="color:#fff"] { color: #0f172a !important; }
+html.light [style*="color: #ffffff"] { color: #0f172a !important; }
+
+/* Fix market cards in light mode */
+html.light [style*="background:\"rgba(255,255,255,0.04)\""] { background: white !important; border: 1px solid rgba(0,0,0,0.08) !important; }
+
+/* Fix input backgrounds */  
+html.light textarea, html.light input:not([type="checkbox"]) {
+  background: white !important;
+  color: #0f172a !important;
+  border-color: rgba(0,0,0,0.15) !important;
+}
+
+/* Keep cyan/emerald/gradient colors */
+html.light [style*="color:#22d3ee"],
+html.light [style*="color: #22d3ee"],
+html.light [style*="color:#10b981"],
+html.light [style*="color:#ef4444"],
+html.light [style*="color:#fbbf24"] { color: inherit !important; }
+
+/* Hero section light mode */
+html.light [style*="background:\"#050508\""] { background: #f0f9ff !important; }
+html.light [style*="minHeight:\"100vh\""] { background: #f1f5f9 !important; }
+
+/* All remaining white text fix */
+html.light span[style*="color: white"],
+html.light span[style*="color:white"],
+html.light h1[style*="color: white"],
+html.light h2[style*="color: white"],
+html.light p[style*="color: white"] { color: #0f172a !important; }
+
+/* Stats numbers */
+html.light [style*="fontFamily:\"monospace\""][style*="color:\"white\""] { color: #0f172a !important; }
+html.light [style*="fontFamily: \"monospace\""] { color: #0f172a !important; }
+
+/* Market card question text */
+html.light .text-white { color: #0f172a !important; }
+html.light h3.text-white { color: #0f172a !important; }
+
+/* Admin page - all text fix */
+html.light [style*="color: #white"],
+html.light [style*="color:\"white\""] { color: #0f172a !important; }
+
+/* Admin panel specific fixes */
+html.light [style*="rounded-xl"] { color: #0f172a; }
+html.light p[style*="font-bold"] { color: #0f172a !important; }
+html.light p[style*="color:\"white\""] { color: #0f172a !important; }
+
+/* Fix ALL remaining white text globally in light mode */
+html.light * { 
+  --tw-text-opacity: 1;
+}
+html.light .text-white,
+html.light [class*="text-white"] { color: #0f172a !important; }
+html.light [class*="text-gray-400"] { color: #475569 !important; }
+html.light [class*="text-gray-500"] { color: #64748b !important; }
+html.light [class*="text-gray-600"] { color: #94a3b8 !important; }
+
+/* Hero section */
+html.light main { background: #f1f5f9 !important; }
+html.light main > div { background: #f1f5f9 !important; }
+html.light [style*="borderBottom"][style*="overflow:\"hidden\""] { 
+  background: linear-gradient(180deg, #dbeafe 0%, #f1f5f9 100%) !important;
+}
+
+/* Stat numbers in hero */
+html.light [style*="fontFamily:\"monospace\""] { color: #0f172a !important; }
+
+/* Admin panel cards */
+html.light [class*="rounded-xl"],
+html.light [class*="rounded-2xl"] { color: #0f172a !important; }

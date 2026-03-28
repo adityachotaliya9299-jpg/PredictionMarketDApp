@@ -13,8 +13,6 @@ import { IPredictionMarket } from "./interfaces/IPredictionMarket.sol";
 /// @dev Users buy YES/NO shares with ETH. Winners split the entire pool proportionally.
 ///      A protocol fee is taken at purchase time.
 ///      Resolution is triggered by an external oracle (Chainlink-compatible).
-
-
 contract PredictionMarket is IPredictionMarket, ReentrancyGuard, Pausable, Ownable {
     // ─── Constants ────────────────────────────────────────────────────────────
 
@@ -185,13 +183,13 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, Pausable, Ownab
         });
     }
 
-    // @inheritdoc IPredictionMarket
+    /// @inheritdoc IPredictionMarket
     function getUserShares(address user) external view override returns (uint256, uint256) {
         return (yesShares[user], noShares[user]);
     }
 
-    // @inheritdoc IPredictionMarket
-    // @return Probability scaled to 1e18 (e.g. 6e17 = 60%)
+    /// @inheritdoc IPredictionMarket
+    /// @return yesProbability scaled to 1e18 (e.g. 6e17 = 60%)
     function calculateProbability() external view override returns (uint256 yesProbability, uint256 noProbability) {
         uint256 totalShares = totalYesShares + totalNoShares;
         if (totalShares == 0) {
@@ -253,8 +251,8 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, Pausable, Ownab
     }
 
     function _assertMarketOpen() internal view {
-        if (block.timestamp >= expirationTime) revert MarketExpired();
         if (resolved) revert MarketAlreadyResolved();
+        if (block.timestamp >= expirationTime) revert MarketExpired();
     }
 
     receive() external payable { }
