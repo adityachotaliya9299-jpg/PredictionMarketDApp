@@ -1,0 +1,24 @@
+type Market @entity(immutable: false) {
+  id: ID!
+  address: String!
+  creator: String!
+  question: String!
+  category: String!
+  endTime: BigInt!
+  resolved: Boolean!
+  outcome: Boolean
+  yesPool: BigInt!
+  noPool: BigInt!
+  trades: [Trade!]! @derivedFrom(field: "market")
+  createdAt: BigInt!
+}
+
+type Trade @entity(immutable: false) {
+  id: ID!
+  market: Market!
+  trader: String!
+  isYes: Boolean!
+  shares: BigInt!
+  cost: BigInt!
+  timestamp: BigInt!
+}

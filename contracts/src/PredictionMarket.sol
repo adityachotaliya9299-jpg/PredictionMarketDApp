@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { LiquidityMining } from "./LiquidityMining.sol";
 import { IOracle } from "./interfaces/IOracle.sol";
 import { IPredictionMarket } from "./interfaces/IPredictionMarket.sol";
 
@@ -46,6 +47,8 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, Pausable, Ownab
 
     // ─── Constructor ──────────────────────────────────────────────────────────
 
+    LiquidityMining public liquidityMining;
+
     constructor(
         bytes32 _marketId,
         string memory _question,
@@ -79,6 +82,9 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, Pausable, Ownab
         _assertMarketOpen();
         shares = _processShares(true, msg.value);
         emit SharesPurchased(msg.sender, true, msg.value, shares);
+        if (address(liquidityMining) != address(0)) {
+            try liquidityMining.recordTrade(msg.sender) {} catch {}
+        }
     }
 
     /// @inheritdoc IPredictionMarket
@@ -87,6 +93,9 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, Pausable, Ownab
         _assertMarketOpen();
         shares = _processShares(false, msg.value);
         emit SharesPurchased(msg.sender, false, msg.value, shares);
+        if (address(liquidityMining) != address(0)) {
+            try liquidityMining.recordTrade(msg.sender) {} catch {}
+        }
     }
 
     // ─── External: Resolution ─────────────────────────────────────────────────
@@ -168,7 +177,10 @@ contract PredictionMarket is IPredictionMarket, ReentrancyGuard, Pausable, Ownab
 
     // ─── External: Views ──────────────────────────────────────────────────────
 
-    /// @inheritdoc IPredictionMarket
+    function setLiquidityMining(address _lm) external onlyOwner {
+        liquidityMining = LiquidityMining(_lm);
+    }
+
     function getMarketInfo() external view override returns (MarketInfo memory) {
         return MarketInfo({
             marketId: marketId,

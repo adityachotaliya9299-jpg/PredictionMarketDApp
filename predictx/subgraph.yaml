@@ -1,0 +1,50 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: MarketFactory
+    network: sepolia
+    source:
+      address: "0x51430273cA467Fd6a961598B5bcD28d6532A8D33"
+      abi: MarketFactory
+      startBlock: 10519744
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Market
+      abis:
+        - name: MarketFactory
+          file: ./abis/MarketFactory.json
+        - name: PredictionMarket
+          file: ./abis/PredictionMarket.json
+      eventHandlers:
+        - event: MarketCreated(indexed bytes32,indexed address,indexed address,string,uint256)
+          handler: handleMarketCreated
+      file: ./src/mapping.ts
+templates:
+  - kind: ethereum
+    name: PredictionMarket
+    network: sepolia
+    source:
+      abi: PredictionMarket
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Market
+        - Trade
+      abis:
+        - name: PredictionMarket
+          file: ./abis/PredictionMarket.json
+        - name: MarketFactory
+          file: ./abis/MarketFactory.json
+      eventHandlers:
+        - event: SharesPurchased(indexed address,bool,uint256,uint256)
+          handler: handleSharesPurchased
+        - event: MarketResolved(uint8,uint256)
+          handler: handleMarketResolved
+      file: ./src/mapping.ts

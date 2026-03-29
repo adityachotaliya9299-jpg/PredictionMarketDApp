@@ -2,7 +2,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useFactoryOwner } from "@/hooks/useMarket";
 import { useAccount } from "wagmi";
-import { TrendingUp, Plus, LayoutDashboard, Shield, Menu, X, Sun, Moon, Trophy } from "lucide-react";
+import { TrendingUp, Plus, LayoutDashboard, Shield, Menu, X, Sun, Moon, Trophy, Layers } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,6 +35,7 @@ export function Navbar() {
     { href: "/create", label: "Create", icon: Plus },
     { href: "/portfolio", label: "Portfolio", icon: LayoutDashboard },
     { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    { href: "/multi", label: "Multi", icon: Layers },
   ];
 
   // Theme-aware colors

@@ -6,12 +6,18 @@ import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { PredictionMarket } from "./PredictionMarket.sol";
 import { IMarketFactory } from "./interfaces/IMarketFactory.sol";
 import { IOracle } from "./interfaces/IOracle.sol";
+import { LiquidityMining } from "./LiquidityMining.sol";
+import { ReferralSystem } from "./ReferralSystem.sol";
 
 /// @title MarketFactory
 /// @author Aditya Chotaliya
 /// @notice Factory contract that deploys and tracks PredictionMarket instances.
 ///         Manages global oracle, fees, and access control.
 contract MarketFactory is IMarketFactory, Ownable, Pausable {
+    // ─── Phase 3 Integrations ─────────────────────────────────────────────────
+    LiquidityMining public liquidityMining;
+    address public referralSystem;
+
     // ─── Constants ────────────────────────────────────────────────────────────
 
     uint256 public constant MAX_FEE_BPS = 500; // 5%
@@ -86,6 +92,11 @@ contract MarketFactory is IMarketFactory, Ownable, Pausable {
         _creatorMarkets[msg.sender].push(marketId);
 
         emit MarketCreated(marketId, market, msg.sender, question, expirationTime);
+
+        // Phase 3: Record creator reward
+        if (address(liquidityMining) != address(0)) {
+            try liquidityMining.recordCreation(msg.sender) {} catch {}
+        }
     }
 
     // ─── External: Admin ──────────────────────────────────────────────────────
@@ -124,6 +135,14 @@ contract MarketFactory is IMarketFactory, Ownable, Pausable {
     }
 
     /// @notice Deactivate a market (admin only, doesn't affect existing bets)
+    function setLiquidityMining(address _liquidityMining) external onlyOwner {
+        liquidityMining = LiquidityMining(_liquidityMining);
+    }
+
+    function setReferralSystem(address _referralSystem) external onlyOwner {
+        referralSystem = _referralSystem;
+    }
+
     function deactivateMarket(bytes32 marketId) external onlyOwner {
         if (_markets[marketId].marketAddress == address(0)) revert MarketNotFound();
         _markets[marketId].active = false;

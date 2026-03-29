@@ -1,13 +1,14 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import { useActiveMarkets, useMarketCount } from "@/hooks/useMarket";
+import { useSubgraphMarkets } from "@/hooks/useSubgraph";
+import { useMarketCount } from "@/hooks/useMarket";
 import { MarketCard } from "@/components/market/MarketCard";
 import { CATEGORIES, type MarketMetadata } from "@/types/market";
 import { Search, Zap, Globe, ChevronRight, Plus } from "lucide-react";
 import Link from "next/link";
 
 export default function HomePage() {
-  const { data: markets, isLoading, error } = useActiveMarkets();
+  const { data: markets, isLoading, error } = useSubgraphMarkets();
   const { data: totalCount } = useMarketCount();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState<string | null>(null);

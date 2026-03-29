@@ -1,0 +1,8 @@
+{
+  "sepolia": {
+    "MarketFactory": {
+      "address": "0x6Ef74718dfF4AA038AeC0e5c87FA1BA522cc59f7",
+      "startBlock": 0
+    }
+  }
+}

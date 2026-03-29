@@ -1,5 +1,5 @@
 "use client";
-import { useAllMarkets } from "@/hooks/useMarket";
+import { useSubgraphMarkets } from "@/hooks/useSubgraph";
 import { type MarketMetadata } from "@/types/market";
 import { shortenAddress } from "@/lib/utils";
 import { Trophy, TrendingUp, Globe, Zap, Users, BarChart2, ExternalLink } from "lucide-react";
@@ -7,9 +7,9 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 export default function LeaderboardPage() {
-  const { data: markets, isLoading } = useAllMarkets();
+  const { data: markets, isLoading } = useSubgraphMarkets();
   const [tab, setTab] = useState<"creators"|"markets">("creators");
-  const allMarkets = (markets as MarketMetadata[] | undefined) ?? [];
+  const allMarkets = markets ?? [];
 
   const creatorStats = useMemo(() => {
     const stats: Record<string,{address:string;markets:number;active:number}> = {};
@@ -30,7 +30,6 @@ export default function LeaderboardPage() {
     <div style={{ minHeight:"100vh", background:"#050508" }}>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}`}</style>
 
-      {/* Hero */}
       <div style={{ background:"linear-gradient(135deg,rgba(34,211,238,0.08),rgba(168,85,247,0.08))", borderBottom:"1px solid rgba(255,255,255,0.06)", padding:"48px 24px 40px" }}>
         <div style={{ maxWidth:1100, margin:"0 auto" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:28 }}>
@@ -62,7 +61,6 @@ export default function LeaderboardPage() {
       </div>
 
       <div style={{ maxWidth:1100, margin:"0 auto", padding:"32px 24px" }}>
-        {/* Tabs */}
         <div style={{ display:"flex", gap:4, marginBottom:24, background:"rgba(255,255,255,0.04)", borderRadius:12, padding:4, width:"fit-content" }}>
           {(["creators","markets"] as const).map(t=>(
             <button key={t} onClick={()=>setTab(t)} style={{ padding:"8px 20px", borderRadius:9, fontWeight:600, fontSize:14, cursor:"pointer", border:"none", transition:"all 0.2s", background:tab===t?"rgba(34,211,238,0.15)":"transparent", color:tab===t?"#22d3ee":"#6b7280", boxShadow:tab===t?"inset 0 0 0 1px rgba(34,211,238,0.3)":"none" }}>
@@ -73,7 +71,6 @@ export default function LeaderboardPage() {
 
         {tab==="creators"&&(
           <div>
-            {/* Podium top 3 */}
             {!isLoading && creatorStats.length >= 1 && (
               <div style={{ display:"grid", gridTemplateColumns:creatorStats.length>=3?"1fr 1fr 1fr":"1fr", gap:12, marginBottom:24 }}>
                 {(creatorStats.length>=3?[creatorStats[1],creatorStats[0],creatorStats[2]]:[creatorStats[0]]).map((s,i)=>{

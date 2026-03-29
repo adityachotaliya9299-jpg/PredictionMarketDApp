@@ -430,3 +430,85 @@ export const ORACLE_ABI = [
     stateMutability: "view",
   },
 ] as const;
+
+// ─── Phase 3 Contract Addresses ──────────────────────────────────────────────
+export const PRED_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_PRED_TOKEN as `0x${string}`;
+export const LIQUIDITY_MINING_ADDRESS = process.env.NEXT_PUBLIC_LIQUIDITY_MINING as `0x${string}`;
+export const REFERRAL_SYSTEM_ADDRESS = process.env.NEXT_PUBLIC_REFERRAL_SYSTEM as `0x${string}`;
+export const CHAINLINK_ORACLE_ADDRESS = process.env.NEXT_PUBLIC_CHAINLINK_ORACLE as `0x${string}`;
+
+// ─── PRED Token ABI ───────────────────────────────────────────────────────────
+export const PRED_TOKEN_ABI = [
+  { name:"balanceOf", type:"function", stateMutability:"view", inputs:[{name:"account",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"totalSupply", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"symbol", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"string"}] },
+  { name:"decimals", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint8"}] },
+  { name:"transfer", type:"function", stateMutability:"nonpayable", inputs:[{name:"to",type:"address"},{name:"amount",type:"uint256"}], outputs:[{name:"",type:"bool"}] },
+] as const;
+
+// ─── Liquidity Mining ABI ─────────────────────────────────────────────────────
+export const LIQUIDITY_MINING_ABI = [
+  { name:"getPendingRewards", type:"function", stateMutability:"view", inputs:[{name:"user",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"totalClaimed", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"creatorReward", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"traderReward", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"claimRewards", type:"function", stateMutability:"nonpayable", inputs:[], outputs:[] },
+  { name:"RewardClaimed", type:"event", inputs:[{name:"user",type:"address",indexed:true},{name:"amount",type:"uint256",indexed:false}] },
+] as const;
+
+// ─── Referral System ABI ──────────────────────────────────────────────────────
+export const REFERRAL_SYSTEM_ABI = [
+  { name:"getReferralStats", type:"function", stateMutability:"view", inputs:[{name:"user",type:"address"}], outputs:[{name:"referrer",type:"address"},{name:"count",type:"uint256"},{name:"pending",type:"uint256"},{name:"total",type:"uint256"}] },
+  { name:"referrerOf", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"address"}] },
+  { name:"claimEarnings", type:"function", stateMutability:"nonpayable", inputs:[], outputs:[] },
+  { name:"referralFeeBps", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+] as const;
+
+// ─── Chainlink Oracle ABI ─────────────────────────────────────────────────────
+export const CHAINLINK_ORACLE_ABI = [
+  { name:"isResolved", type:"function", stateMutability:"view", inputs:[{name:"marketId",type:"bytes32"}], outputs:[{name:"",type:"bool"}] },
+  { name:"getOutcome", type:"function", stateMutability:"view", inputs:[{name:"marketId",type:"bytes32"}], outputs:[{name:"",type:"uint8"}] },
+  { name:"getLatestPrice", type:"function", stateMutability:"view", inputs:[{name:"feed",type:"address"}], outputs:[{name:"",type:"int256"}] },
+  { name:"tryResolve", type:"function", stateMutability:"nonpayable", inputs:[{name:"marketId",type:"bytes32"}], outputs:[] },
+  { name:"ETH_USD_FEED", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"address"}] },
+  { name:"BTC_USD_FEED", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"address"}] },
+] as const;
+
+// ─── Multi-Outcome Contract Addresses ────────────────────────────────────────
+export const MULTI_ORACLE_ADDRESS = process.env.NEXT_PUBLIC_MULTI_ORACLE as `0x${string}`;
+export const MULTI_FACTORY_ADDRESS = process.env.NEXT_PUBLIC_MULTI_FACTORY as `0x${string}`;
+
+// ─── Multi Oracle ABI ─────────────────────────────────────────────────────────
+export const MULTI_ORACLE_ABI = [
+  { name:"isResolved", type:"function", stateMutability:"view", inputs:[{name:"marketId",type:"bytes32"}], outputs:[{name:"",type:"bool"}] },
+  { name:"getWinningOutcome", type:"function", stateMutability:"view", inputs:[{name:"marketId",type:"bytes32"}], outputs:[{name:"",type:"uint8"}] },
+  { name:"resolve", type:"function", stateMutability:"nonpayable", inputs:[{name:"marketId",type:"bytes32"},{name:"winningOutcome",type:"uint8"}], outputs:[] },
+] as const;
+
+// ─── Multi Market Factory ABI ─────────────────────────────────────────────────
+export const MULTI_FACTORY_ABI = [
+  { name:"createMarket", type:"function", stateMutability:"nonpayable", inputs:[{name:"question",type:"string"},{name:"outcomes",type:"string[]"},{name:"expirationTime",type:"uint256"}], outputs:[{name:"market",type:"address"},{name:"marketId",type:"bytes32"}] },
+  { name:"getAllMarkets", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"tuple[]",components:[{name:"marketAddress",type:"address"},{name:"creator",type:"address"},{name:"question",type:"string"},{name:"outcomes",type:"string[]"},{name:"expirationTime",type:"uint256"},{name:"active",type:"bool"}]}] },
+  { name:"getMarketCount", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"getMarketsByCreator", type:"function", stateMutability:"view", inputs:[{name:"creator",type:"address"}], outputs:[{name:"",type:"tuple[]",components:[{name:"marketAddress",type:"address"},{name:"creator",type:"address"},{name:"question",type:"string"},{name:"outcomes",type:"string[]"},{name:"expirationTime",type:"uint256"},{name:"active",type:"bool"}]}] },
+] as const;
+
+// ─── Multi Outcome Market ABI ─────────────────────────────────────────────────
+export const MULTI_MARKET_ABI = [
+  { name:"buyShares", type:"function", stateMutability:"payable", inputs:[{name:"outcomeIndex",type:"uint8"}], outputs:[{name:"sharesReceived",type:"uint256"}] },
+  { name:"resolve", type:"function", stateMutability:"nonpayable", inputs:[], outputs:[] },
+  { name:"claimReward", type:"function", stateMutability:"nonpayable", inputs:[], outputs:[] },
+  { name:"getMarketInfo", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"_marketId",type:"bytes32"},{name:"_question",type:"string"},{name:"_expirationTime",type:"uint256"},{name:"_resolved",type:"bool"},{name:"_totalPool",type:"uint256"}] },
+  { name:"getMarketStatus", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"_winningOutcome",type:"uint8"},{name:"_paused",type:"bool"},{name:"_outcomeCount",type:"uint256"}] },
+  { name:"getOutcomes", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"string[]"}] },
+  { name:"getAllOutcomePools", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"pools",type:"uint256[]"}] },
+  { name:"getUserShares", type:"function", stateMutability:"view", inputs:[{name:"user",type:"address"},{name:"outcomeIndex",type:"uint8"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"getExpectedPayout", type:"function", stateMutability:"view", inputs:[{name:"user",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"outcomePools", type:"function", stateMutability:"view", inputs:[{name:"",type:"uint8"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"totalPool", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"resolved", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"bool"}] },
+  { name:"winningOutcome", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint8"}] },
+  { name:"expirationTime", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"feeBps", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"hasClaimed", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"bool"}] },
+] as const;
