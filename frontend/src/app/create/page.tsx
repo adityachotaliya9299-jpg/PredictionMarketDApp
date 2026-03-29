@@ -7,9 +7,15 @@ import { CATEGORIES } from "@/types/market";
 import { Zap, Clock, Tag, ChevronRight, CheckCircle, Wallet } from "lucide-react";
 
 const DURATIONS = [
-  { label:"1 Hour", hours:1, icon:"⚡" },{ label:"1 Day", hours:24, icon:"🌅" },
-  { label:"3 Days", hours:72, icon:"📅" },{ label:"1 Week", hours:168, icon:"🗓️" },
-  { label:"2 Weeks", hours:336, icon:"📆" },{ label:"1 Month", hours:720, icon:"🌙" },
+  { label:"1 Day", hours:24, icon:"🌅" },
+  { label:"3 Days", hours:72, icon:"📅" },
+  { label:"1 Week", hours:168, icon:"🗓️" },
+  { label:"2 Weeks", hours:336, icon:"📆" },
+  { label:"1 Month", hours:720, icon:"🌙" },
+  { label:"3 Months", hours:2160, icon:"🌸" },
+  { label:"6 Months", hours:4320, icon:"☀️" },
+  { label:"1 Year", hours:8760, icon:"🎯" },
+  { label:"Custom", hours:0, icon:"✏️" },
 ];
 const ICONS: Record<string,string> = { Crypto:"₿",Politics:"🏛️",Sports:"⚽",Science:"🔬",Entertainment:"🎬",Economics:"📈",Technology:"💻",General:"🌐" };
 const EXAMPLES = ["Will ETH reach $10,000 before Dec 31, 2025?","Will Bitcoin dominate over 60% market cap by Q3 2025?","Will AI surpass human performance in chess by 2026?"];
@@ -23,11 +29,18 @@ export default function CreatePage() {
   const [durationHours, setDurationHours] = useState(168);
   const [error, setError] = useState("");
   const [mounted, setMounted] = useState(false);
-  const [step, setStep] = useState(1);
+  const [done, setDone] = useState(false);
+  const [customDays, setCustomDays] = useState(30);
+  const [step, setStep] = useState(168);
   const [exIdx, setExIdx] = useState(0);
 
   useEffect(() => {
     setMounted(true);
+    setStep(1);
+    setDone(false);
+    setQuestion("");
+    setCategory("Crypto");
+    setDurationHours(168);
     const t = setInterval(() => setExIdx(i => (i+1) % EXAMPLES.length), 3000);
     return () => clearInterval(t);
   }, []);
@@ -35,15 +48,16 @@ export default function CreatePage() {
   const submit = async () => {
     if (!question.trim() || question.length < 10) { setError("At least 10 characters required"); return; }
     setError("");
-    try { await createMarket(question.trim(), category, BigInt(Math.floor(Date.now()/1000) + durationHours*3600)); }
+    try { await createMarket(question.trim(), category, BigInt(Math.floor(Date.now()/1000) + (durationHours===0 ? customDays*24 : durationHours)*3600));
+      setDone(true); }
     catch(e: any) { setError(e?.shortMessage || e?.message || "Transaction failed"); }
   };
 
-  const sel = DURATIONS.find(d => d.hours === durationHours)!;
+  const sel = DURATIONS.find(d => d.hours === durationHours) ?? { label:`${customDays} Days`, icon:"✏️" };
   const btnBase = { border:"none", fontWeight:700 as const, cursor:"pointer" as const, display:"flex" as const, alignItems:"center" as const, justifyContent:"center" as const, gap:8, transition:"all 0.2s" };
   const card = { background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, padding:28 };
 
-  if (isSuccess) return (
+  if (done) return (
     <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#050508", padding:24 }}>
       <div style={{ textAlign:"center", maxWidth:440 }}>
         <div style={{ width:80, height:80, borderRadius:"50%", background:"rgba(16,185,129,0.15)", border:"2px solid rgba(16,185,129,0.4)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 24px" }}>
@@ -155,9 +169,23 @@ export default function CreatePage() {
               </button>
             ))}
           </div>
+          {durationHours===0&&(
+            <div style={{ marginTop:12, padding:"14px 16px", borderRadius:12, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.1)" }}>
+              <label style={{ color:"#9ca3af", fontSize:12, fontWeight:600, display:"block", marginBottom:8 }}>CUSTOM DURATION (DAYS)</label>
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <input type="number" min={1} max={1460} value={customDays}
+                  onChange={e=>{const v=Math.max(1,Math.min(1460,parseInt(e.target.value)||1));setCustomDays(v);}}
+                  style={{ flex:1, background:"rgba(0,0,0,0.4)", border:"1px solid rgba(255,255,255,0.15)", borderRadius:10, padding:"10px 14px", color:"white", fontSize:16, fontFamily:"monospace", outline:"none", boxSizing:"border-box" as const }}/>
+                <span style={{ color:"#6b7280", fontSize:13 }}>days (1–1460)</span>
+              </div>
+              <p style={{ color:"#4b5563", fontSize:12, marginTop:6 }}>
+                Max 4 years = 1460 days
+              </p>
+            </div>
+          )}
           <div style={{ marginTop:16, padding:"12px 16px", borderRadius:12, background:"rgba(251,191,36,0.06)", border:"1px solid rgba(251,191,36,0.15)", display:"flex", alignItems:"center", gap:10 }}>
             <span style={{ fontSize:18 }}>⏰</span>
-            <p style={{ color:"#fbbf24", fontSize:13, margin:0 }}>Expires: <strong>{new Date(Date.now()+durationHours*3600000).toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</strong></p>
+            <p style={{ color:"#fbbf24", fontSize:13, margin:0 }}>Expires: <strong>{new Date(Date.now()+(durationHours===0?customDays*24:durationHours)*3600000).toLocaleDateString("en-US",{weekday:"long",year:"numeric",month:"long",day:"numeric"})}</strong></p>
           </div>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:20 }}>
             <button onClick={()=>setStep(2)} style={{ ...btnBase, padding:13, borderRadius:12, background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", color:"#9ca3af" }}>← Back</button>
@@ -185,7 +213,7 @@ export default function CreatePage() {
                 </div>
               </div>
               <div style={{ padding:"12px 16px", borderRadius:12, background:"rgba(34,211,238,0.05)", border:"1px solid rgba(34,211,238,0.12)" }}>
-                {[["Network","Sepolia Testnet"],["Protocol Fee","2%"],["Expires",new Date(Date.now()+durationHours*3600000).toLocaleDateString()]].map(([k,v],idx)=>(
+                {[["Network","Sepolia Testnet"],["Protocol Fee","2%"],["Expires",new Date(Date.now()+(durationHours===0?customDays*24:durationHours)*3600000).toLocaleDateString()]].map(([k,v],idx)=>(
                   <div key={k} style={{ display:"flex", justifyContent:"space-between", fontSize:13, marginTop:idx>0?8:0, paddingTop:idx>0?8:0, borderTop:idx>0?"1px solid rgba(255,255,255,0.04)":"none" }}>
                     <span style={{ color:"#6b7280" }}>{k}</span><span style={{ color:"#22d3ee", fontWeight:600 }}>{v}</span>
                   </div>
