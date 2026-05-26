@@ -4,7 +4,7 @@
 
 1. Fork the repository
 2. Clone your fork
-   `git clone [https://github.com/YOUR_USERNAME/PredictionMarketDApp](https://github.com/adityachotaliya9299-jpg/PredictionMarketDApp).git`
+   `git clone https://github.com/adityachotaliya9299-jpg/PredictionMarketDApp.git`
 3. Install dependencies
    `cd frontend && npm install`
 4. Copy environment file
