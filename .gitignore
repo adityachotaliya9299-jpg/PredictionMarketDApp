@@ -1,0 +1,32 @@
+# Environment files
+.env
+.env.local
+.env.production
+*.env
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+frontend/.next/
+frontend/out/
+contracts/out/
+contracts/cache/
+
+# Foundry
+contracts/broadcast/*/11155111/run-latest.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Private keys - NEVER commit these
+*.key
+private_key*

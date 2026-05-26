@@ -14,7 +14,7 @@ export default function MultiMarketPage() {
   const marketAddress = params.address as `0x${string}`;
   const { address, isConnected } = useAccount();
   const { data: balance } = useBalance({ address });
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(false);  
   const [selected, setSelected] = useState<number | null>(null);
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
