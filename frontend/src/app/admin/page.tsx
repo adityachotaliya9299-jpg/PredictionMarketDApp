@@ -1,346 +1,320 @@
 "use client";
-
 import { useState } from "react";
 import { useAccount } from "wagmi";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import {
-  useFactoryOwner,
-  useFactoryFeeBps,
-  useFactoryPaused,
-  useAllMarkets,
-} from "@/hooks/useMarket";
-import {
-  useFactoryAdmin,
-  useSetOracleResolution,
-} from "@/hooks/useTransactions";
-import { FACTORY_ADDRESS, ORACLE_ADDRESS } from "@/lib/contracts";
+import { useFactoryOwner, useFactoryFeeBps, useFactoryPaused, useAllMarkets } from "@/hooks/useMarket";
+import { useFactoryAdmin, useSetOracleResolution } from "@/hooks/useTransactions";
+import { useMultiMarkets, useResolveViaOracle } from "@/hooks/useMultiOutcome";
+import { FACTORY_ADDRESS, ORACLE_ADDRESS, MULTI_FACTORY_ADDRESS, MULTI_ORACLE_ADDRESS } from "@/lib/contracts";
 import { formatETH, shortenAddress } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import type { MarketMetadata } from "@/types/market";
-import {
-  Shield,
-  Settings,
-  Pause,
-  Play,
-  Sliders,
-  EyeOff,
-  Eye,
-  CheckCircle,
-  AlertTriangle,
-  RefreshCw,
-} from "lucide-react";
+import { Shield, Settings, Pause, Play, Sliders, EyeOff, CheckCircle, AlertTriangle, RefreshCw, Layers, ChevronDown, ChevronUp } from "lucide-react";
 
 const OUTCOME_LABELS = ["UNRESOLVED", "YES", "NO", "INVALID"];
 
+const card = { background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:16, padding:20 };
+const input = { background:"rgba(0,0,0,0.3)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:10, padding:"10px 14px", color:"white", fontSize:13, fontFamily:"monospace", outline:"none", width:"100%", boxSizing:"border-box" as const };
+const labelStyle = { color:"#4b5563", fontSize:11, fontWeight:700 as const, textTransform:"uppercase" as const, letterSpacing:"0.08em", display:"block" as const, marginBottom:6 };
+
+function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div style={{ padding:"14px 16px", borderRadius:12, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)" }}>
+      <div style={{ color:"#6b7280", fontSize:11, marginBottom:4 }}>{label}</div>
+      <div style={{ color:color||"white", fontWeight:700, fontSize:14, fontFamily:"monospace" }}>{value}</div>
+    </div>
+  );
+}
+
+function ActionBtn({ label, color, onClick, disabled, icon }: any) {
+  const c = { green:"#10b981", red:"#ef4444", amber:"#fbbf24", blue:"#3b82f6", cyan:"#22d3ee" }[color as string] || "#22d3ee";
+  return (
+    <button onClick={onClick} disabled={disabled}
+      style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:9, fontSize:12, fontWeight:600, cursor:disabled?"not-allowed":"pointer", opacity:disabled?0.4:1, border:`1px solid ${c}30`, background:`${c}12`, color:c, transition:"all 0.2s" }}>
+      {icon}{label}
+    </button>
+  );
+}
+
+// ─── Multi-Outcome Market Row ──────────────────────────────────────────────────
+function MultiMarketRow({ market }: { market: any }) {
+  const [expanded, setExpanded] = useState(false);
+  const [selectedOutcome, setSelectedOutcome] = useState(0);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const { resolve, isPending, isConfirming, isSuccess } = useResolveViaOracle(market.marketId as `0x${string}`);
+
+  const handleResolve = async () => {
+    setError(""); setSuccess("");
+    try {
+      await resolve(selectedOutcome);
+      setSuccess(`Resolved: ${market.outcomes[selectedOutcome]}`);
+    } catch(e: any) { setError(e?.shortMessage || "Failed"); }
+  };
+
+  const expired = Math.floor(Date.now()/1000) >= Number(market.expirationTime);
+  const status = expired ? "EXPIRED" : "LIVE";
+  const statusColor = expired ? "#fbbf24" : "#10b981";
+
+  return (
+    <div style={{ borderRadius:12, border:"1px solid rgba(255,255,255,0.06)", background:"rgba(0,0,0,0.2)", marginBottom:10, overflow:"hidden" }}>
+      <div style={{ padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, cursor:"pointer" }} onClick={()=>setExpanded(!expanded)}>
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ color:"white", fontSize:13, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" as const, margin:0 }}>{market.question}</p>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:4 }}>
+            <span style={{ color:"#6b7280", fontFamily:"monospace", fontSize:11 }}>{shortenAddress(market.marketAddress)}</span>
+            <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:700, background:`${statusColor}15`, color:statusColor, border:`1px solid ${statusColor}25` }}>{status}</span>
+            <span style={{ color:"#6b7280", fontSize:11 }}>{market.outcomes?.length} outcomes</span>
+          </div>
+        </div>
+        {expanded ? <ChevronUp size={16} color="#6b7280"/> : <ChevronDown size={16} color="#6b7280"/>}
+      </div>
+
+      {expanded && (
+        <div style={{ padding:"0 16px 16px", borderTop:"1px solid rgba(255,255,255,0.04)" }}>
+          <div style={{ paddingTop:12 }}>
+            <p style={{ ...labelStyle, marginBottom:10 }}>Outcomes</p>
+            <div style={{ display:"flex", flexWrap:"wrap" as const, gap:8, marginBottom:14 }}>
+              {market.outcomes?.map((o: string, i: number) => (
+                <span key={i} style={{ padding:"4px 12px", borderRadius:99, fontSize:12, fontWeight:600, background:"rgba(168,85,247,0.1)", color:"#a855f7", border:"1px solid rgba(168,85,247,0.2)" }}>
+                  {i}: {o}
+                </span>
+              ))}
+            </div>
+            <p style={labelStyle}>Resolve via MultiOracle</p>
+            <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+              <select value={selectedOutcome} onChange={e=>setSelectedOutcome(Number(e.target.value))}
+                style={{ flex:1, ...input, padding:"8px 12px" }}>
+                {market.outcomes?.map((o: string, i: number) => (
+                  <option key={i} value={i} style={{ background:"#111" }}>{i}: {o}</option>
+                ))}
+                <option value={255} style={{ background:"#111" }}>255: INVALID</option>
+              </select>
+              <button onClick={handleResolve} disabled={isPending||isConfirming}
+                style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 16px", borderRadius:10, fontSize:12, fontWeight:700, cursor:isPending||isConfirming?"wait":"pointer", border:"1px solid rgba(59,130,246,0.3)", background:"rgba(59,130,246,0.12)", color:"#3b82f6", whiteSpace:"nowrap" as const }}>
+                <RefreshCw size={13}/>{isPending?"Confirm...":isConfirming?"Resolving...":"Set Oracle"}
+              </button>
+            </div>
+            {success&&<div style={{ color:"#10b981", fontSize:12, marginTop:8, padding:"7px 12px", background:"rgba(16,185,129,0.1)", borderRadius:8 }}>✅ {success}</div>}
+            {error&&<div style={{ color:"#ef4444", fontSize:12, marginTop:8, padding:"7px 12px", background:"rgba(239,68,68,0.1)", borderRadius:8 }}>{error}</div>}
+            <p style={{ color:"#4b5563", fontSize:11, marginTop:8, lineHeight:1.5 }}>
+              After setting oracle, anyone can call resolve() on the market contract once it expires.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── YES/NO Market Row ────────────────────────────────────────────────────────
+function MarketRow({ m, onExec, isPending, resolvePending }: any) {
+  const [expanded, setExpanded] = useState(false);
+  const [outcome, setOutcome] = useState("1");
+  const { setResolution } = useSetOracleResolution();
+
+  return (
+    <div style={{ borderRadius:12, border:"1px solid rgba(255,255,255,0.06)", background:"rgba(0,0,0,0.2)", marginBottom:10, overflow:"hidden" }}>
+      <div style={{ padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, cursor:"pointer" }} onClick={()=>setExpanded(!expanded)}>
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ color:"white", fontSize:13, fontWeight:500, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" as const, margin:0 }}>{m.question}</p>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:4 }}>
+            <span style={{ color:"#6b7280", fontFamily:"monospace", fontSize:11 }}>{shortenAddress(m.marketAddress)}</span>
+            <span style={{ padding:"2px 8px", borderRadius:99, fontSize:10, fontWeight:700, background:m.active?"rgba(16,185,129,0.1)":"rgba(107,114,128,0.1)", color:m.active?"#10b981":"#6b7280", border:`1px solid ${m.active?"rgba(16,185,129,0.2)":"rgba(107,114,128,0.2)"}` }}>
+              {m.active?"Active":"Inactive"}
+            </span>
+          </div>
+        </div>
+        {expanded?<ChevronUp size={16} color="#6b7280"/>:<ChevronDown size={16} color="#6b7280"/>}
+      </div>
+
+      {expanded&&(
+        <div style={{ padding:"0 16px 16px", borderTop:"1px solid rgba(255,255,255,0.04)" }}>
+          <div style={{ display:"flex", flexWrap:"wrap" as const, gap:8, paddingTop:12, marginBottom:14 }}>
+            <ActionBtn label="Pause" color="amber" icon={<Pause size={12}/>} disabled={isPending} onClick={()=>onExec(()=>m.pauseMarket(m.marketId),"Market paused")}/>
+            <ActionBtn label="Unpause" color="green" icon={<Play size={12}/>} disabled={isPending} onClick={()=>onExec(()=>m.unpauseMarket(m.marketId),"Market unpaused")}/>
+            <ActionBtn label="Deactivate" color="red" icon={<EyeOff size={12}/>} disabled={isPending||!m.active} onClick={()=>onExec(()=>m.deactivateMarket(m.marketId),"Market deactivated")}/>
+          </div>
+          <p style={labelStyle}>Set Oracle Resolution (YES/NO Market)</p>
+          <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+            <select value={outcome} onChange={e=>setOutcome(e.target.value)} style={{ flex:1, ...input, padding:"8px 12px" }}>
+              <option value="1" style={{ background:"#111" }}>YES</option>
+              <option value="2" style={{ background:"#111" }}>NO</option>
+              <option value="3" style={{ background:"#111" }}>INVALID</option>
+            </select>
+            <button onClick={()=>onExec(()=>setResolution(m.marketId,parseInt(outcome)),`Oracle resolved: ${OUTCOME_LABELS[parseInt(outcome)]}`)}
+              disabled={resolvePending}
+              style={{ display:"flex", alignItems:"center", gap:6, padding:"9px 16px", borderRadius:10, fontSize:12, fontWeight:700, cursor:"pointer", border:"1px solid rgba(34,211,238,0.3)", background:"rgba(34,211,238,0.1)", color:"#22d3ee", whiteSpace:"nowrap" as const }}>
+              <RefreshCw size={13}/>Resolve
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main Admin Page ──────────────────────────────────────────────────────────
 export default function AdminPage() {
   const { address, isConnected } = useAccount();
   const { data: owner } = useFactoryOwner();
   const { data: feeBps, refetch: refetchFee } = useFactoryFeeBps();
   const { data: isPaused, refetch: refetchPaused } = useFactoryPaused();
   const { data: markets } = useAllMarkets();
+  const { data: multiMarkets } = useMultiMarkets();
 
-  const isAdmin = isConnected && address && owner && address.toLowerCase() === owner.toLowerCase();
+  const isAdmin = isConnected && address && owner &&
+    address.toLowerCase() === owner.toLowerCase();
 
-  const {
-    pauseFactory,
-    unpauseFactory,
-    setFeeBps,
-    setOracle,
-    setFeeCollector,
-    pauseMarket,
-    unpauseMarket,
-    deactivateMarket,
-    isPending,
-  } = useFactoryAdmin();
-
+  const { pauseFactory, unpauseFactory, setFeeBps, setOracle, setFeeCollector,
+    pauseMarket, unpauseMarket, deactivateMarket, isPending } = useFactoryAdmin();
   const { setResolution, isPending: resolvePending } = useSetOracleResolution();
 
   const [newFee, setNewFee] = useState("");
   const [newOracle, setNewOracle] = useState("");
   const [newCollector, setNewCollector] = useState("");
-  const [txError, setTxError] = useState<string | null>(null);
-  const [txSuccess, setTxSuccess] = useState<string | null>(null);
-
-  // Per-market resolve state
-  const [resolveOutcomes, setResolveOutcomes] = useState<Record<string, string>>({});
+  const [txError, setTxError] = useState("");
+  const [txSuccess, setTxSuccess] = useState("");
+  const [activeTab, setActiveTab] = useState<"yesno"|"multi">("yesno");
 
   const exec = async (fn: () => Promise<any>, successMsg: string) => {
-    setTxError(null);
-    setTxSuccess(null);
-    try {
-      await fn();
-      setTxSuccess(successMsg);
-      refetchFee();
-      refetchPaused();
-    } catch (e: any) {
-      setTxError(e?.shortMessage || e?.message || "Transaction failed");
-    }
+    setTxError(""); setTxSuccess("");
+    try { await fn(); setTxSuccess(successMsg); refetchFee(); refetchPaused(); }
+    catch(e: any) { setTxError(e?.shortMessage || e?.message || "Failed"); }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <Shield className="w-12 h-12 text-gray-600 mx-auto" />
-          <p className="text-gray-400">Connect your wallet to access the admin panel</p>
-          <ConnectButton />
-        </div>
-      </div>
-    );
-  }
+  const allMarkets = (markets as MarketMetadata[]|undefined) ?? [];
+  const allMulti = (multiMarkets as any[]|undefined) ?? [];
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <AlertTriangle className="w-12 h-12 text-amber-400 mx-auto" />
-          <h2 className="text-white font-bold text-xl">Access Denied</h2>
-          <p className="text-gray-500 text-sm">
-            Only the factory owner ({owner ? shortenAddress(owner) : "—"}) can access this panel.
-          </p>
+  if (!isConnected) return (
+    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ width:56, height:56, borderRadius:16, background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
+          <Shield size={28} color="#fbbf24"/>
         </div>
+        <p style={{ color:"#6b7280", fontSize:14 }}>Connect your wallet to access the admin panel</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  const allMarkets = (markets as MarketMetadata[] | undefined) ?? [];
+  if (!isAdmin) return (
+    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ textAlign:"center" }}>
+        <div style={{ width:56, height:56, borderRadius:16, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>
+          <AlertTriangle size={28} color="#ef4444"/>
+        </div>
+        <h2 style={{ color:"white", fontWeight:700, fontSize:20, marginBottom:8 }}>Access Denied</h2>
+        <p style={{ color:"#6b7280", fontSize:14 }}>Only the factory owner ({owner?shortenAddress(owner):"—"}) can access this panel.</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-10 space-y-8">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-amber-400" />
+    <div style={{ maxWidth:900, margin:"0 auto", padding:"32px 16px 64px", boxSizing:"border-box" as const }}>
+      <style>{`select option{background:#111} input:focus{border-color:rgba(34,211,238,0.4)!important;outline:none} select:focus{outline:none;border-color:rgba(34,211,238,0.3)!important}`}</style>
+
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:28 }}>
+        <div style={{ width:44, height:44, borderRadius:12, background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.2)", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <Shield size={22} color="#fbbf24"/>
+        </div>
+        <div>
+          <h1 style={{ color:"white", fontWeight:900, fontSize:22, margin:0 }}>Admin Panel</h1>
+          <p style={{ color:"#6b7280", fontSize:12, margin:0 }}>PredictX Factory Control</p>
+        </div>
+      </div>
+
+      {/* Alerts */}
+      {txSuccess&&<div style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 16px", borderRadius:12, background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.2)", color:"#10b981", fontSize:13, marginBottom:16 }}><CheckCircle size={15}/>{txSuccess}</div>}
+      {txError&&<div style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 16px", borderRadius:12, background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.2)", color:"#ef4444", fontSize:13, marginBottom:16 }}><AlertTriangle size={15}/>{txError}</div>}
+
+      {/* Stats */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))", gap:12, marginBottom:24 }}>
+        <StatCard label="Factory" value={shortenAddress(FACTORY_ADDRESS)}/>
+        <StatCard label="YES/NO Oracle" value={shortenAddress(ORACLE_ADDRESS)}/>
+        <StatCard label="Multi Oracle" value={shortenAddress(MULTI_ORACLE_ADDRESS)}/>
+        <StatCard label="Protocol Fee" value={feeBps!==undefined?`${Number(feeBps)/100}%`:"—"} color="#22d3ee"/>
+        <StatCard label="Factory Status" value={isPaused?"PAUSED":"ACTIVE"} color={isPaused?"#ef4444":"#10b981"}/>
+        <StatCard label="YES/NO Markets" value={String(allMarkets.length)} color="#a855f7"/>
+        <StatCard label="Multi Markets" value={String(allMulti.length)} color="#f97316"/>
+      </div>
+
+      {/* Factory Controls */}
+      <div style={{ ...card, marginBottom:20 }}>
+        <h2 style={{ color:"white", fontWeight:700, fontSize:15, marginBottom:20, display:"flex", alignItems:"center", gap:8 }}>
+          <Settings size={16} color="#22d3ee"/>Factory Controls
+        </h2>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))", gap:16 }}>
+          <div>
+            <span style={labelStyle}>Emergency Controls</span>
+            <div style={{ display:"flex", gap:8 }}>
+              <ActionBtn label="Pause" color="red" icon={<Pause size={12}/>} disabled={isPending||!!isPaused} onClick={()=>exec(()=>pauseFactory(),"Factory paused")}/>
+              <ActionBtn label="Unpause" color="green" icon={<Play size={12}/>} disabled={isPending||!isPaused} onClick={()=>exec(()=>unpauseFactory(),"Factory unpaused")}/>
+            </div>
           </div>
           <div>
-            <h1 className="text-white font-black text-2xl">Admin Panel</h1>
-            <p className="text-gray-500 text-xs">PredictX Factory Control</p>
-          </div>
-        </div>
-
-        {/* Status banner */}
-        {txSuccess && (
-          <div className="rounded-xl border border-emerald-400/20 bg-emerald-400/5 px-4 py-3 flex items-center gap-2 text-emerald-400 text-sm">
-            <CheckCircle className="w-4 h-4 shrink-0" />
-            {txSuccess}
-          </div>
-        )}
-        {txError && (
-          <div className="rounded-xl border border-red-400/20 bg-red-400/5 px-4 py-3 flex items-center gap-2 text-red-400 text-sm">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            {txError}
-          </div>
-        )}
-
-        {/* Overview Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { label: "Factory Address", value: shortenAddress(FACTORY_ADDRESS), mono: true },
-            { label: "Oracle Address", value: shortenAddress(ORACLE_ADDRESS), mono: true },
-            { label: "Protocol Fee", value: feeBps !== undefined ? `${Number(feeBps) / 100}%` : "—" },
-            { label: "Factory Status", value: isPaused ? "PAUSED" : "ACTIVE", color: isPaused ? "text-red-400" : "text-emerald-400" },
-          ].map(({ label, value, mono, color }) => (
-            <div key={label} className="rounded-xl border border-white/5 bg-white/[0.02] p-4 space-y-1">
-              <p className="text-gray-600 text-xs">{label}</p>
-              <p className={cn("font-bold text-sm", mono && "font-mono", color || "text-white")}>{value}</p>
+            <span style={labelStyle}>Protocol Fee (bps)</span>
+            <div style={{ display:"flex", gap:8 }}>
+              <input type="number" value={newFee} onChange={e=>setNewFee(e.target.value)} placeholder={feeBps!==undefined?String(Number(feeBps)):"200"} min="0" max="500" style={{ ...input, flex:1 }}/>
+              <button onClick={()=>exec(()=>setFeeBps(BigInt(newFee||"200")),`Fee: ${newFee} bps`)} disabled={isPending||!newFee}
+                style={{ padding:"10px 14px", borderRadius:10, fontSize:12, fontWeight:600, cursor:"pointer", border:"1px solid rgba(34,211,238,0.3)", background:"rgba(34,211,238,0.1)", color:"#22d3ee" }}>Set</button>
             </div>
-          ))}
+            <p style={{ color:"#4b5563", fontSize:11, marginTop:4 }}>100 bps = 1% · Max 500</p>
+          </div>
+          <div>
+            <span style={labelStyle}>Oracle Address</span>
+            <div style={{ display:"flex", gap:8 }}>
+              <input type="text" value={newOracle} onChange={e=>setNewOracle(e.target.value)} placeholder="0x..." style={{ ...input, flex:1 }}/>
+              <button onClick={()=>exec(()=>setOracle(newOracle as `0x${string}`),"Oracle updated")} disabled={isPending||!newOracle.startsWith("0x")}
+                style={{ padding:"10px 14px", borderRadius:10, fontSize:12, fontWeight:600, cursor:"pointer", border:"1px solid rgba(34,211,238,0.3)", background:"rgba(34,211,238,0.1)", color:"#22d3ee" }}>Set</button>
+            </div>
+          </div>
+          <div>
+            <span style={labelStyle}>Fee Collector</span>
+            <div style={{ display:"flex", gap:8 }}>
+              <input type="text" value={newCollector} onChange={e=>setNewCollector(e.target.value)} placeholder="0x..." style={{ ...input, flex:1 }}/>
+              <button onClick={()=>exec(()=>setFeeCollector(newCollector as `0x${string}`),"Collector updated")} disabled={isPending||!newCollector.startsWith("0x")}
+                style={{ padding:"10px 14px", borderRadius:10, fontSize:12, fontWeight:600, cursor:"pointer", border:"1px solid rgba(34,211,238,0.3)", background:"rgba(34,211,238,0.1)", color:"#22d3ee" }}>Set</button>
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Factory Controls */}
-        <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-5 space-y-5">
-          <h2 className="text-white font-bold flex items-center gap-2">
-            <Settings className="w-4 h-4 text-cyan-400" />
-            Factory Controls
+      {/* Market Management */}
+      <div style={card}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+          <h2 style={{ color:"white", fontWeight:700, fontSize:15, display:"flex", alignItems:"center", gap:8, margin:0 }}>
+            <Sliders size={16} color="#22d3ee"/>Market Management
           </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Pause / Unpause */}
-            <div className="space-y-2">
-              <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Emergency Controls</p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => exec(() => pauseFactory(), "Factory paused")}
-                  disabled={isPending || !!isPaused}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-red-400/10 text-red-400 border border-red-400/20 hover:bg-red-400/20 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
-                >
-                  <Pause className="w-3.5 h-3.5" />
-                  Pause Factory
-                </button>
-                <button
-                  onClick={() => exec(() => unpauseFactory(), "Factory unpaused")}
-                  disabled={isPending || !isPaused}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 hover:bg-emerald-400/20 disabled:opacity-40 transition-all flex items-center justify-center gap-2"
-                >
-                  <Play className="w-3.5 h-3.5" />
-                  Unpause
-                </button>
-              </div>
-            </div>
-
-            {/* Update Fee */}
-            <div className="space-y-2">
-              <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Protocol Fee (bps)</p>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  value={newFee}
-                  onChange={(e) => setNewFee(e.target.value)}
-                  placeholder={feeBps !== undefined ? String(Number(feeBps)) : "200"}
-                  min="0"
-                  max="500"
-                  className="flex-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm font-mono focus:outline-none focus:border-cyan-400/30"
-                />
-                <button
-                  onClick={() => exec(() => setFeeBps(BigInt(newFee || "200")), `Fee updated to ${newFee} bps`)}
-                  disabled={isPending || !newFee}
-                  className="px-4 py-2.5 rounded-xl text-sm font-medium bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-400/20 disabled:opacity-40 transition-all"
-                >
-                  Update
-                </button>
-              </div>
-              <p className="text-gray-700 text-xs">100 bps = 1% | Max 500</p>
-            </div>
-
-            {/* Update Oracle */}
-            <div className="space-y-2">
-              <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Oracle Address</p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newOracle}
-                  onChange={(e) => setNewOracle(e.target.value)}
-                  placeholder="0x..."
-                  className="flex-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm font-mono focus:outline-none focus:border-cyan-400/30"
-                />
-                <button
-                  onClick={() => exec(() => setOracle(newOracle as `0x${string}`), "Oracle updated")}
-                  disabled={isPending || !newOracle.startsWith("0x")}
-                  className="px-4 py-2.5 rounded-xl text-sm font-medium bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-400/20 disabled:opacity-40 transition-all"
-                >
-                  Update
-                </button>
-              </div>
-            </div>
-
-            {/* Update Fee Collector */}
-            <div className="space-y-2">
-              <p className="text-gray-500 text-xs font-medium uppercase tracking-wider">Fee Collector</p>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newCollector}
-                  onChange={(e) => setNewCollector(e.target.value)}
-                  placeholder="0x..."
-                  className="flex-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm font-mono focus:outline-none focus:border-cyan-400/30"
-                />
-                <button
-                  onClick={() => exec(() => setFeeCollector(newCollector as `0x${string}`), "Fee collector updated")}
-                  disabled={isPending || !newCollector.startsWith("0x")}
-                  className="px-4 py-2.5 rounded-xl text-sm font-medium bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-400/20 disabled:opacity-40 transition-all"
-                >
-                  Update
-                </button>
-              </div>
-            </div>
+          {/* Tabs */}
+          <div style={{ display:"flex", gap:4, background:"rgba(255,255,255,0.04)", borderRadius:10, padding:4 }}>
+            <button onClick={()=>setActiveTab("yesno")} style={{ padding:"6px 14px", borderRadius:8, fontSize:12, fontWeight:600, cursor:"pointer", border:"none", background:activeTab==="yesno"?"rgba(34,211,238,0.15)":"transparent", color:activeTab==="yesno"?"#22d3ee":"#6b7280" }}>
+              YES/NO ({allMarkets.length})
+            </button>
+            <button onClick={()=>setActiveTab("multi")} style={{ padding:"6px 14px", borderRadius:8, fontSize:12, fontWeight:600, cursor:"pointer", border:"none", background:activeTab==="multi"?"rgba(168,85,247,0.15)":"transparent", color:activeTab==="multi"?"#a855f7":"#6b7280", display:"flex", alignItems:"center", gap:6 }}>
+              <Layers size={12}/>Multi ({allMulti.length})
+            </button>
           </div>
         </div>
 
-        {/* Market Management */}
-        <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-5 space-y-4">
-          <h2 className="text-white font-bold flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-cyan-400" />
-            Market Management ({allMarkets.length})
-          </h2>
+        {/* YES/NO Markets */}
+        {activeTab==="yesno"&&(
+          allMarkets.length===0
+            ? <p style={{ color:"#4b5563", fontSize:14 }}>No YES/NO markets deployed yet.</p>
+            : allMarkets.map(m=>(
+                <MarketRow key={m.marketId} m={{
+                  ...m,
+                  pauseMarket, unpauseMarket, deactivateMarket
+                }} onExec={exec} isPending={isPending} resolvePending={resolvePending}/>
+              ))
+        )}
 
-          {allMarkets.length === 0 ? (
-            <p className="text-gray-600 text-sm">No markets deployed yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {allMarkets.map((m) => (
-                <div
-                  key={m.marketId}
-                  className="rounded-xl border border-white/5 bg-black/20 p-4 space-y-3"
-                >
-                  {/* Market header */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{m.question}</p>
-                      <p className="text-gray-600 text-xs font-mono">{shortenAddress(m.marketAddress)}</p>
-                    </div>
-                    <span className={cn(
-                      "text-xs px-2 py-0.5 rounded-full border shrink-0",
-                      m.active
-                        ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
-                        : "bg-gray-400/10 text-gray-400 border-gray-400/20"
-                    )}>
-                      {m.active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-
-                  {/* Actions row */}
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => exec(() => pauseMarket(m.marketId), "Market paused")}
-                      disabled={isPending}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-400/10 text-amber-400 border border-amber-400/20 hover:bg-amber-400/15 disabled:opacity-40 transition-all flex items-center gap-1.5"
-                    >
-                      <Pause className="w-3 h-3" /> Pause
-                    </button>
-                    <button
-                      onClick={() => exec(() => unpauseMarket(m.marketId), "Market unpaused")}
-                      disabled={isPending}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 hover:bg-emerald-400/15 disabled:opacity-40 transition-all flex items-center gap-1.5"
-                    >
-                      <Play className="w-3 h-3" /> Unpause
-                    </button>
-                    <button
-                      onClick={() => exec(() => deactivateMarket(m.marketId), "Market deactivated")}
-                      disabled={isPending || !m.active}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-red-400/10 text-red-400 border border-red-400/20 hover:bg-red-400/15 disabled:opacity-40 transition-all flex items-center gap-1.5"
-                    >
-                      <EyeOff className="w-3 h-3" /> Deactivate
-                    </button>
-                  </div>
-
-                  {/* Oracle resolution */}
-                  <div className="border-t border-white/5 pt-3">
-                    <p className="text-gray-600 text-xs mb-2 font-medium">Set Oracle Resolution</p>
-                    <div className="flex gap-2">
-                      <select
-                        value={resolveOutcomes[m.marketId] ?? "1"}
-                        onChange={(e) => setResolveOutcomes((prev) => ({ ...prev, [m.marketId]: e.target.value }))}
-                        className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-1.5 text-white text-xs focus:outline-none focus:border-cyan-400/30"
-                      >
-                        <option value="1">YES</option>
-                        <option value="2">NO</option>
-                        <option value="3">INVALID</option>
-                      </select>
-                      <button
-                        onClick={() =>
-                          exec(
-                            () =>
-                              setResolution(
-                                m.marketId,
-                                parseInt(resolveOutcomes[m.marketId] ?? "1")
-                              ),
-                            `Oracle resolved: ${OUTCOME_LABELS[parseInt(resolveOutcomes[m.marketId] ?? "1")]}`
-                          )
-                        }
-                        disabled={resolvePending}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-400/10 text-blue-400 border border-blue-400/20 hover:bg-blue-400/15 disabled:opacity-40 transition-all flex items-center gap-1.5"
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        Resolve Oracle
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Multi-Outcome Markets */}
+        {activeTab==="multi"&&(
+          allMulti.length===0
+            ? <p style={{ color:"#4b5563", fontSize:14 }}>No multi-outcome markets deployed yet.</p>
+            : allMulti.map((m: any, i: number)=>(
+                <MultiMarketRow key={i} market={m}/>
+              ))
+        )}
       </div>
     </div>
   );
