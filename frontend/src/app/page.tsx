@@ -41,7 +41,7 @@ export default function HomePage() {
             <Zap size={12}/>Powered by Smart Contracts
           </div>
           <h1 style={{ fontSize:"clamp(2rem,5vw,3.5rem)", fontWeight:900, lineHeight:1.1, margin:"0 0 16px" }}>
-            <span className="gradient-text">Predict the Future,</span><br/>
+            <span style={{ background:"linear-gradient(135deg,#22d3ee,#3b82f6)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}>Predict the Future,</span><br/>
             <span style={{ color:"white" }}>Earn from Truth</span>
           </h1>
           <p style={{ color:"#9ca3af", fontSize:16, maxWidth:480, margin:"0 auto 32px", lineHeight:1.6 }}>
@@ -92,9 +92,26 @@ export default function HomePage() {
 
         {isLoading && !timedOut ? (
           <>
-            <p style={{ color:"#6b7280", fontSize:14, marginBottom:16 }}>Fetching from Sepolia...</p>
+            <p style={{ color:"#6b7280", fontSize:14, marginBottom:16, display:"flex", alignItems:"center", gap:8 }}>
+              <span style={{ width:8, height:8, borderRadius:"50%", background:"#22d3ee", display:"inline-block", animation:"pulse 1.5s infinite" }}/>
+              Loading markets from The Graph...
+            </p>
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))", gap:16 }}>
-              {[1,2,3].map(i=><div key={i} style={{ height:180, borderRadius:16, background:"rgba(255,255,255,0.04)", animation:"pulse 2s infinite" }}/>)}
+              {[1,2,3,4,5,6].map(i=>(
+                <div key={i} style={{ borderRadius:16, border:"1px solid rgba(255,255,255,0.06)", background:"rgba(255,255,255,0.03)", padding:20, animation:"pulse 2s infinite", animationDelay:`${i*0.1}s` }}>
+                  <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+                    <div style={{ height:20, width:60, borderRadius:99, background:"rgba(255,255,255,0.06)" }}/>
+                    <div style={{ height:20, width:40, borderRadius:99, background:"rgba(255,255,255,0.06)" }}/>
+                  </div>
+                  <div style={{ height:14, width:"90%", borderRadius:6, background:"rgba(255,255,255,0.06)", marginBottom:8 }}/>
+                  <div style={{ height:14, width:"70%", borderRadius:6, background:"rgba(255,255,255,0.06)", marginBottom:20 }}/>
+                  <div style={{ height:8, borderRadius:99, background:"rgba(255,255,255,0.06)", marginBottom:6 }}/>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginTop:16 }}>
+                    <div style={{ height:12, width:60, borderRadius:6, background:"rgba(255,255,255,0.06)" }}/>
+                    <div style={{ height:12, width:60, borderRadius:6, background:"rgba(255,255,255,0.06)" }}/>
+                  </div>
+                </div>
+              ))}
             </div>
           </>
         ) : filtered.length === 0 ? (
