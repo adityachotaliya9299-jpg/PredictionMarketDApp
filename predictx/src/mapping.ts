@@ -118,6 +118,6 @@ export function handleMultiMarketResolved(event: MultiMarketResolved): void {
   let market = MultiMarket.load(event.address.toHex())
   if (!market) return
   market.resolved = true
-  market.winningOutcome = i32(event.params.outcome)
+  market.winningOutcome = i32(event.params.winningOutcome)
   market.save()
 }
