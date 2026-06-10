@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0x51430273cA467Fd6a961598B5bcD28d6532A8D33"
       abi: MarketFactory
-      startBlock: 10519744
+      startBlock: 10539000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -23,6 +23,28 @@ dataSources:
       eventHandlers:
         - event: MarketCreated(indexed bytes32,indexed address,indexed address,string,uint256)
           handler: handleMarketCreated
+      file: ./src/mapping.ts
+  - kind: ethereum
+    name: MultiMarketFactory
+    network: sepolia
+    source:
+      address: "0x30a99B8A1C7b71314160c0396b49eE9db8bbC4Ab"
+      abi: MultiMarketFactory
+      startBlock: 10539000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - MultiMarket
+      abis:
+        - name: MultiMarketFactory
+          file: ./abis/MultiMarketFactory.json
+        - name: MultiOutcomeMarket
+          file: ./abis/MultiOutcomeMarket.json
+      eventHandlers:
+        - event: MultiMarketCreated(indexed bytes32,indexed address,indexed address,string,string[],uint256)
+          handler: handleMultiMarketCreated
       file: ./src/mapping.ts
 templates:
   - kind: ethereum
@@ -47,4 +69,25 @@ templates:
           handler: handleSharesPurchased
         - event: MarketResolved(uint8,uint256)
           handler: handleMarketResolved
+      file: ./src/mapping.ts
+  - kind: ethereum
+    name: MultiOutcomeMarket
+    network: sepolia
+    source:
+      abi: MultiOutcomeMarket
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - MultiMarket
+        - MultiTrade
+      abis:
+        - name: MultiOutcomeMarket
+          file: ./abis/MultiOutcomeMarket.json
+      eventHandlers:
+        - event: SharesPurchased(indexed address,uint8,uint256,uint256)
+          handler: handleMultiSharesPurchased
+        - event: MarketResolved(uint8,uint256)
+          handler: handleMultiMarketResolved
       file: ./src/mapping.ts
