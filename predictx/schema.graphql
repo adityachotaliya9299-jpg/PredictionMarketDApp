@@ -22,3 +22,29 @@ type Trade @entity(immutable: false) {
   cost: BigInt!
   timestamp: BigInt!
 }
+
+type MultiMarket @entity(immutable: false) {
+  id: ID!
+  address: String!
+  creator: String!
+  question: String!
+  outcomes: [String!]!
+  endTime: BigInt!
+  resolved: Boolean!
+  winningOutcome: Int!
+  totalPool: BigInt!
+  outcomePools: [BigInt!]!
+  trades: [MultiTrade!]! @derivedFrom(field: "market")
+  createdAt: BigInt!
+}
+
+type MultiTrade @entity(immutable: false) {
+  id: ID!
+  market: MultiMarket!
+  trader: String!
+  outcomeIndex: Int!
+  outcomeName: String!
+  shares: BigInt!
+  cost: BigInt!
+  timestamp: BigInt!
+}
