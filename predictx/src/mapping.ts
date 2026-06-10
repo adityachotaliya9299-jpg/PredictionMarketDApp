@@ -94,7 +94,7 @@ export function handleMultiSharesPurchased(event: MultiSharesPurchased): void {
   market.totalPool = market.totalPool.plus(event.params.shares)
 
   let pools = market.outcomePools
-  let idx = event.params.outcomeIndex as i32
+  let idx = i32(event.params.outcomeIndex)
   if (idx < pools.length) {
     pools[idx] = pools[idx].plus(event.params.shares)
     market.outcomePools = pools
@@ -105,7 +105,7 @@ export function handleMultiSharesPurchased(event: MultiSharesPurchased): void {
   let trade = new MultiTrade(tradeId)
   trade.market = marketId
   trade.trader = event.params.buyer.toHex()
-  trade.outcomeIndex = event.params.outcomeIndex as i32
+  trade.outcomeIndex = i32(event.params.outcomeIndex)
   let outcomes = market.outcomes
   trade.outcomeName = idx < outcomes.length ? outcomes[idx] : "Unknown"
   trade.shares = event.params.shares
@@ -118,6 +118,6 @@ export function handleMultiMarketResolved(event: MultiMarketResolved): void {
   let market = MultiMarket.load(event.address.toHex())
   if (!market) return
   market.resolved = true
-  market.winningOutcome = event.params.outcome as i32
+  market.winningOutcome = i32(event.params.outcome)
   market.save()
 }
