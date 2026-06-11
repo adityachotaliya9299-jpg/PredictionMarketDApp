@@ -38,7 +38,7 @@ export function useStakePRED() {
   const stake = async (amount: string) => writeContractAsync({
     address: PRED_STAKING_ADDRESS, abi: PRED_STAKING_ABI,
     functionName: "stake", args: [parseEther(amount as `${number}`)],
-    gas: BigInt(80000),
+    gas: BigInt(200000),
   });
   const error = writeError || txError;
   return { stake, isPending, isConfirming, isSuccess, isError: isTxError, error };
@@ -50,7 +50,7 @@ export function useUnstakePRED() {
   const unstake = async (amount: string) => writeContractAsync({
     address: PRED_STAKING_ADDRESS, abi: PRED_STAKING_ABI,
     functionName: "unstake", args: [parseEther(amount as `${number}`)],
-    gas: BigInt(80000),
+    gas: BigInt(200000),
   });
   return { unstake, isPending, isConfirming, isSuccess };
 }
