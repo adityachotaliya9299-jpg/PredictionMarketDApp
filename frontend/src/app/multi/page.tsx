@@ -1,5 +1,5 @@
 "use client";
-import { useMultiMarkets } from "@/hooks/useMultiOutcome";
+import { useSubgraphMultiMarkets } from "@/hooks/useSubgraph";
 import { formatETH, formatTimeLeft } from "@/lib/utils";
 import { TrendingUp, Clock, Plus, ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -7,7 +7,7 @@ import Link from "next/link";
 const COLORS = ["#22d3ee","#a855f7","#f97316","#10b981","#f59e0b","#ef4444","#3b82f6","#ec4899"];
 
 export default function MultiMarketsPage() {
-  const { data: markets, isLoading } = useMultiMarkets();
+  const { data: markets, isLoading } = useSubgraphMultiMarkets();
   const allMarkets = (markets as any[] | undefined) ?? [];
 
   return (
@@ -49,7 +49,7 @@ export default function MultiMarketsPage() {
             const status = m.resolved ? "resolved" : expired ? "expired" : "live";
             const statusColor = { live:"#10b981", expired:"#fbbf24", resolved:"#3b82f6" }[status];
             return (
-              <Link key={idx} href={`/multi/${m.marketAddress}`} style={{ textDecoration:"none" }}>
+              <Link key={idx} href={`/multi/${m.address}`} style={{ textDecoration:"none" }}>
                 <div style={{ padding:20, borderRadius:16, background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.07)", cursor:"pointer", transition:"all 0.2s", height:"100%", boxSizing:"border-box" as const }}
                   onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor="rgba(168,85,247,0.4)";(e.currentTarget as HTMLElement).style.background="rgba(168,85,247,0.05)";}}
                   onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor="rgba(255,255,255,0.07)";(e.currentTarget as HTMLElement).style.background="rgba(255,255,255,0.04)";}}>
