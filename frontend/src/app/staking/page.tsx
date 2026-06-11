@@ -17,7 +17,7 @@ export default function StakingPage() {
   const { data: predBalance } = usePREDBalance(address);
   const { data: allowance, refetch: refetchAllowance } = usePREDAllowance(address);
 
-  const { stake, isPending: stakePending, isConfirming: stakeConfirming, isSuccess: stakeSuccess } = useStakePRED();
+  const { stake, isPending: stakePending, isConfirming: stakeConfirming, isSuccess: stakeSuccess, isError: stakeError, error: stakeErrorObj } = useStakePRED();
   const { unstake, isPending: unstakePending, isConfirming: unstakeConfirming, isSuccess: unstakeSuccess } = useUnstakePRED();
   const { claim, isPending: claimPending, isConfirming: claimConfirming, isSuccess: claimSuccess } = useClaimStakingReward();
   const { approve, isPending: approvePending, isConfirming: approveConfirming, isSuccess: approveSuccess } = useApprovePRED();
@@ -34,6 +34,9 @@ export default function StakingPage() {
   const needsApproval = parsedStakeAmount > BigInt(0) &&
     !approveSuccess &&
     ((allowance === undefined) || ((allowance as bigint) < parsedStakeAmount));
+
+  // Show tx receipt error
+  const stakeErrorMsg = stakeErrorObj ? (stakeErrorObj as any)?.shortMessage || (stakeErrorObj as any)?.message || "Transaction failed" : "";
 
   const handleStake = async () => {
     if (!stakeAmount || parseFloat(stakeAmount) <= 0) { setError("Enter amount"); return; }
@@ -140,7 +143,7 @@ export default function StakingPage() {
                   ))}
                 </div>
               </div>
-              {error&&<div style={{ color:"#ef4444", fontSize:12, marginBottom:10, padding:"8px 12px", background:"rgba(239,68,68,0.1)", borderRadius:8 }}>{error}</div>}
+              {(error || stakeErrorMsg) && <div style={{ color:"#ef4444", fontSize:12, marginBottom:10, padding:"8px 12px", background:"rgba(239,68,68,0.1)", borderRadius:8 }}>{error || stakeErrorMsg}</div>}
               {needsApproval?(
                 <button onClick={handleApprove} disabled={approvePending||approveConfirming}
                   style={{ width:"100%", padding:13, borderRadius:12, background:"linear-gradient(135deg,#fbbf24,#f97316)", border:"none", color:"black", fontWeight:700, fontSize:14, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
@@ -170,7 +173,7 @@ export default function StakingPage() {
                 </div>
                 <button onClick={()=>setUnstakeAmount(stakeInfo.stakedFmt)} style={{ marginTop:8, padding:"4px 10px", borderRadius:8, fontSize:11, cursor:"pointer", border:"1px solid rgba(255,255,255,0.06)", background:"transparent", color:"#6b7280" }}>Max</button>
               </div>
-              {error&&<div style={{ color:"#ef4444", fontSize:12, marginBottom:10, padding:"8px 12px", background:"rgba(239,68,68,0.1)", borderRadius:8 }}>{error}</div>}
+              {(error || stakeErrorMsg) && <div style={{ color:"#ef4444", fontSize:12, marginBottom:10, padding:"8px 12px", background:"rgba(239,68,68,0.1)", borderRadius:8 }}>{error || stakeErrorMsg}</div>}
               <button onClick={handleUnstake} disabled={unstakePending||unstakeConfirming||!unstakeAmount}
                 style={{ width:"100%", padding:13, borderRadius:12, background:"linear-gradient(135deg,#a855f7,#7c3aed)", border:"none", color:"white", fontWeight:700, fontSize:14, cursor:!unstakeAmount?"not-allowed":"pointer", opacity:!unstakeAmount?0.5:1, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
                 <Unlock size={15}/>{unstakePending?"⏳ Confirm...":unstakeConfirming?"⏳ Unstaking...":unstakeSuccess?"✅ Unstaked!":"Unstake PRED"}
