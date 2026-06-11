@@ -2,7 +2,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useFactoryOwner } from "@/hooks/useMarket";
 import { useAccount } from "wagmi";
-import { TrendingUp, Plus, LayoutDashboard, Shield, Menu, X, Sun, Moon, Trophy, Layers, Vote } from "lucide-react";
+import { TrendingUp, Plus, LayoutDashboard, Shield, Menu, X, Sun, Moon, Trophy, Layers, Vote, DollarSign, BarChart2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -38,6 +38,9 @@ export function Navbar() {
     { href: "/multi", label: "Multi", icon: Layers },
     { href: "/staking", label: "Staking", icon: TrendingUp },
     { href: "/governance", label: "Governance", icon: Vote },
+    { href: "/usdc", label: "USDC", icon: DollarSign },
+    { href: "/scalar", label: "Scalar", icon: BarChart2 },
+    { href: "/analytics", label: "Analytics", icon: BarChart2 },
   ];
 
   // Theme-aware colors
