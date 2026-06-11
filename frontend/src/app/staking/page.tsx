@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAccount } from "wagmi";
 import { formatEther } from "viem";
-import { useStakeInfo, useTotalStaked, useStakePRED, useUnstakePRED, useClaimStakingReward, useApprovePRED, usePREDAllowance } from "@/hooks/useGovernance";
+import { useStakeInfo, useTotalStaked, useStakePRED, useUnstakePRED, useClaimStakingReward, useApprovePRED, usePREDAllowance, useFaucetClaimed, useFaucetBalance, useClaimFaucet } from "@/hooks/useGovernance";
 import { usePREDBalance } from "@/hooks/usePhase3";
 import { Zap, TrendingUp, Lock, Unlock, Gift, Info } from "lucide-react";
 import Link from "next/link";
@@ -21,6 +21,11 @@ export default function StakingPage() {
   const { unstake, isPending: unstakePending, isConfirming: unstakeConfirming, isSuccess: unstakeSuccess } = useUnstakePRED();
   const { claim, isPending: claimPending, isConfirming: claimConfirming, isSuccess: claimSuccess } = useClaimStakingReward();
   const { approve, isPending: approvePending, isConfirming: approveConfirming, isSuccess: approveSuccess } = useApprovePRED();
+
+  const { data: hasClaimed } = useFaucetClaimed(address);
+  const { data: faucetBal } = useFaucetBalance();
+  const { claim: claimFaucet, isPending: faucetPending, isConfirming: faucetConfirming, isSuccess: faucetSuccess } = useClaimFaucet();
+  const [faucetError, setFaucetError] = useState("");
 
   const [stakeAmount, setStakeAmount] = useState("");
   const [unstakeAmount, setUnstakeAmount] = useState("");
@@ -88,6 +93,29 @@ export default function StakingPage() {
         <h1 style={{ color:"white", fontSize:28, fontWeight:900, margin:"0 0 6px" }}>Stake PRED</h1>
         <p style={{ color:"#6b7280", fontSize:14, margin:0 }}>Stake PRED tokens to earn a share of protocol fees in ETH</p>
       </div>
+
+      {/* Faucet Banner */}
+      {!hasClaimed && (
+        <div style={{ marginBottom:20, padding:"16px 20px", borderRadius:16, background:"linear-gradient(135deg,rgba(34,211,238,0.08),rgba(168,85,247,0.08))", border:"1px solid rgba(34,211,238,0.2)", display:"flex", alignItems:"center", justifyContent:"space-between", gap:16, flexWrap:"wrap" as const }}>
+          <div>
+            <p style={{ color:"white", fontWeight:700, fontSize:15, margin:"0 0 4px" }}>🎁 New User? Claim 100 FREE PRED</p>
+            <p style={{ color:"#6b7280", fontSize:13, margin:0 }}>
+              Get 100 PRED to start staking and voting. One-time claim per wallet.
+              {faucetBal ? ` (${Number(faucetBal as bigint) / 1e18} PRED remaining in faucet)` : ""}
+            </p>
+            {faucetError && <p style={{ color:"#ef4444", fontSize:12, marginTop:4 }}>{faucetError}</p>}
+          </div>
+          {faucetSuccess ? (
+            <div style={{ padding:"10px 20px", borderRadius:10, background:"rgba(16,185,129,0.15)", color:"#10b981", fontWeight:700, whiteSpace:"nowrap" as const }}>✅ 100 PRED Claimed!</div>
+          ) : (
+            <button onClick={async()=>{try{await claimFaucet();}catch(e:any){setFaucetError(e?.shortMessage||"Failed");}}}
+              disabled={faucetPending||faucetConfirming}
+              style={{ padding:"12px 24px", borderRadius:12, background:"linear-gradient(135deg,#22d3ee,#3b82f6)", border:"none", color:"black", fontWeight:700, fontSize:14, cursor:"pointer", whiteSpace:"nowrap" as const }}>
+              {faucetPending?"⏳ Confirm...":faucetConfirming?"⏳ Claiming...":"🎁 Claim 100 PRED"}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Stats */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:12, marginBottom:28 }}>
