@@ -74,3 +74,41 @@ export function adaptSubgraphMarket(m: any) {
     active: !m.resolved,
   };
 }
+
+export const GET_MULTI_MARKETS = gql`
+  query GetMultiMarkets {
+    multiMarkets(orderBy: createdAt, orderDirection: desc) {
+      id
+      address
+      creator
+      question
+      outcomes
+      endTime
+      resolved
+      winningOutcome
+      totalPool
+      outcomePools
+      createdAt
+    }
+  }
+`;
+
+export const GET_USER_MULTI_TRADES = gql`
+  query GetUserMultiTrades($trader: String!) {
+    multiTrades(where: { trader: $trader }, orderBy: timestamp, orderDirection: desc) {
+      id
+      outcomeIndex
+      outcomeName
+      shares
+      cost
+      timestamp
+      market {
+        id
+        question
+        resolved
+        winningOutcome
+        outcomes
+      }
+    }
+  }
+`;
