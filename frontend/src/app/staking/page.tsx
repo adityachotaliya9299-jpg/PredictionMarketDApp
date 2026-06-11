@@ -27,10 +27,13 @@ export default function StakingPage() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"stake"|"unstake">("stake");
 
-  const needsApproval = !stakeAmount ? false :
-    approveSuccess ? false :
-    allowance === undefined ? true :
-    (allowance as bigint) < parseEther(stakeAmount as `${number}`);
+  const parsedStakeAmount = (() => {
+    try { return stakeAmount ? parseEther(stakeAmount as `${number}`) : BigInt(0); }
+    catch { return BigInt(0); }
+  })();
+  const needsApproval = parsedStakeAmount > BigInt(0) &&
+    !approveSuccess &&
+    ((allowance === undefined) || ((allowance as bigint) < parsedStakeAmount));
 
   const handleStake = async () => {
     if (!stakeAmount || parseFloat(stakeAmount) <= 0) { setError("Enter amount"); return; }
