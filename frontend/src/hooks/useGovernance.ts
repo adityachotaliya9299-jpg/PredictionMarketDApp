@@ -71,7 +71,7 @@ export function useApprovePRED() {
   const approve = async (amount: string) => writeContractAsync({
     address: PRED_TOKEN_ADDRESS, abi: PRED_TOKEN_ABI,
     functionName: "approve",
-    args: [PRED_STAKING_ADDRESS, parseEther(amount as `${number}`)],
+    args: [PRED_STAKING_ADDRESS, BigInt("115792089237316195423570985008687907853269984665640564039457584007913129639935")],
     gas: BigInt(60000),
   });
   return { approve, isPending, isConfirming, isSuccess };
