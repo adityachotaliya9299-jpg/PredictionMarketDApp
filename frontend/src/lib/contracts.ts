@@ -550,3 +550,14 @@ export const GOVERNANCE_ABI = [
   { name:"ProposalCreated", type:"event", inputs:[{name:"id",type:"uint256",indexed:true},{name:"proposer",type:"address",indexed:true},{name:"title",type:"string",indexed:false}] },
   { name:"VoteCast", type:"event", inputs:[{name:"proposalId",type:"uint256",indexed:true},{name:"voter",type:"address",indexed:true},{name:"support",type:"bool",indexed:false},{name:"weight",type:"uint256",indexed:false}] },
 ] as const;
+
+// ─── PRED Faucet ──────────────────────────────────────────────────────────────
+export const PRED_FAUCET_ADDRESS = process.env.NEXT_PUBLIC_PRED_FAUCET as `0x${string}`;
+
+export const PRED_FAUCET_ABI = [
+  { name:"claim", type:"function", stateMutability:"nonpayable", inputs:[], outputs:[] },
+  { name:"hasClaimed", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"bool"}] },
+  { name:"faucetBalance", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"claimAmount", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"Claimed", type:"event", inputs:[{name:"user",type:"address",indexed:true},{name:"amount",type:"uint256",indexed:false}] },
+] as const;
