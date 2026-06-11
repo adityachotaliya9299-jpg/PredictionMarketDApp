@@ -27,7 +27,8 @@ export default function StakingPage() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"stake"|"unstake">("stake");
 
-  const needsApproval = !stakeAmount ? false : 
+  const needsApproval = !stakeAmount ? false :
+    approveSuccess ? false :
     allowance === undefined ? true :
     (allowance as bigint) < parseEther(stakeAmount as `${number}`);
 
@@ -37,7 +38,7 @@ export default function StakingPage() {
     try {
       await stake(stakeAmount);
       setStakeAmount("");
-      stakeInfo.refetch();
+      setTimeout(() => { stakeInfo.refetch(); refetchAllowance(); }, 3000);
     } catch(e: any) { setError(e?.shortMessage || "Failed"); }
   };
 
@@ -55,7 +56,7 @@ export default function StakingPage() {
     setError("");
     try {
       await approve(stakeAmount || "1000000");
-      refetchAllowance();
+      setTimeout(() => refetchAllowance(), 2000);
     } catch(e: any) { setError(e?.shortMessage || "Failed"); }
   };
 
