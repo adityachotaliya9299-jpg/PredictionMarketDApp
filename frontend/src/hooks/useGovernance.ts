@@ -1,7 +1,7 @@
 "use client";
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from "wagmi";
 import { parseEther, formatEther } from "viem";
-import { PRED_STAKING_ADDRESS, PRED_STAKING_ABI, GOVERNANCE_ADDRESS, GOVERNANCE_ABI, PRED_TOKEN_ADDRESS, PRED_TOKEN_ABI } from "@/lib/contracts";
+import { PRED_STAKING_ADDRESS, PRED_STAKING_ABI, GOVERNANCE_ADDRESS, GOVERNANCE_ABI, PRED_TOKEN_ADDRESS, PRED_TOKEN_ABI, PRED_FAUCET_ADDRESS, PRED_FAUCET_ABI } from "@/lib/contracts";
 
 const C = 11155111;
 
@@ -132,4 +132,31 @@ export function useCastVote() {
     gas: BigInt(100000),
   });
   return { castVote, isPending, isConfirming, isSuccess };
+}
+
+// ─── Faucet Hooks ─────────────────────────────────────────────────────────────
+export function useFaucetClaimed(address?: `0x${string}`) {
+  return useReadContract({
+    address: PRED_FAUCET_ADDRESS, abi: PRED_FAUCET_ABI,
+    functionName: "hasClaimed", args: address ? [address] : undefined,
+    chainId: C, query: { enabled: !!address }
+  });
+}
+
+export function useFaucetBalance() {
+  return useReadContract({
+    address: PRED_FAUCET_ADDRESS, abi: PRED_FAUCET_ABI,
+    functionName: "faucetBalance", chainId: C
+  });
+}
+
+export function useClaimFaucet() {
+  const { writeContractAsync, isPending, data: hash } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const claim = async () => writeContractAsync({
+    address: PRED_FAUCET_ADDRESS, abi: PRED_FAUCET_ABI,
+    functionName: "claim",
+    gas: BigInt(80000),
+  });
+  return { claim, isPending, isConfirming, isSuccess };
 }
