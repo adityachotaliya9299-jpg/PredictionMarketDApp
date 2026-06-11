@@ -38,7 +38,6 @@ export function useStakePRED() {
   const stake = async (amount: string) => writeContractAsync({
     address: PRED_STAKING_ADDRESS, abi: PRED_STAKING_ABI,
     functionName: "stake", args: [parseEther(amount as `${number}`)],
-    gas: BigInt(150000),
   });
   return { stake, isPending, isConfirming, isSuccess };
 }
@@ -49,7 +48,6 @@ export function useUnstakePRED() {
   const unstake = async (amount: string) => writeContractAsync({
     address: PRED_STAKING_ADDRESS, abi: PRED_STAKING_ABI,
     functionName: "unstake", args: [parseEther(amount as `${number}`)],
-    gas: BigInt(150000),
   });
   return { unstake, isPending, isConfirming, isSuccess };
 }
@@ -60,7 +58,6 @@ export function useClaimStakingReward() {
   const claim = async () => writeContractAsync({
     address: PRED_STAKING_ADDRESS, abi: PRED_STAKING_ABI,
     functionName: "claimReward",
-    gas: BigInt(100000),
   });
   return { claim, isPending, isConfirming, isSuccess };
 }
@@ -72,7 +69,6 @@ export function useApprovePRED() {
     address: PRED_TOKEN_ADDRESS, abi: PRED_TOKEN_ABI,
     functionName: "approve",
     args: [PRED_STAKING_ADDRESS, parseEther(amount as `${number}`)],
-    gas: BigInt(100000),
   });
   return { approve, isPending, isConfirming, isSuccess };
 }
