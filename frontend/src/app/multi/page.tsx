@@ -45,7 +45,7 @@ export default function MultiMarketsPage() {
       ) : (
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))", gap:16 }}>
           {allMarkets.map((m: any, idx: number) => {
-            const expired = Math.floor(Date.now()/1000) >= Number(m.expirationTime);
+            const expired = Math.floor(Date.now()/1000) >= Number(m.endTime || m.expirationTime || 0);
             const status = m.resolved ? "resolved" : expired ? "expired" : "live";
             const statusColor = { live:"#10b981", expired:"#fbbf24", resolved:"#3b82f6" }[status];
             return (
@@ -80,7 +80,7 @@ export default function MultiMarketsPage() {
                       <TrendingUp size={12}/>{m.outcomes.length} outcomes
                     </div>
                     <div style={{ display:"flex", alignItems:"center", gap:4 }}>
-                      <Clock size={12}/>{formatTimeLeft(BigInt(m.expirationTime))}
+                      <Clock size={12}/>{formatTimeLeft(BigInt(m.endTime || m.expirationTime || 0))}
                     </div>
                   </div>
                 </div>
