@@ -27,8 +27,9 @@ export default function StakingPage() {
   const [error, setError] = useState("");
   const [tab, setTab] = useState<"stake"|"unstake">("stake");
 
-  const needsApproval = allowance !== undefined && stakeAmount &&
-    (allowance as bigint) < parseEther(stakeAmount as `${number}` || "0");
+  const needsApproval = !stakeAmount ? false : 
+    allowance === undefined ? true :
+    (allowance as bigint) < parseEther(stakeAmount as `${number}`);
 
   const handleStake = async () => {
     if (!stakeAmount || parseFloat(stakeAmount) <= 0) { setError("Enter amount"); return; }
