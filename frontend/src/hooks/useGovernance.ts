@@ -33,14 +33,15 @@ export function useTotalStaked() {
 }
 
 export function useStakePRED() {
-  const { writeContractAsync, isPending, data: hash } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { writeContractAsync, isPending, data: hash, error: writeError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, isError: isTxError, error: txError } = useWaitForTransactionReceipt({ hash });
   const stake = async (amount: string) => writeContractAsync({
     address: PRED_STAKING_ADDRESS, abi: PRED_STAKING_ABI,
     functionName: "stake", args: [parseEther(amount as `${number}`)],
     gas: BigInt(80000),
   });
-  return { stake, isPending, isConfirming, isSuccess };
+  const error = writeError || txError;
+  return { stake, isPending, isConfirming, isSuccess, isError: isTxError, error };
 }
 
 export function useUnstakePRED() {
