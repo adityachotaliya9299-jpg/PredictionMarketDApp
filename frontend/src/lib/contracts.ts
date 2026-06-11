@@ -512,3 +512,39 @@ export const MULTI_MARKET_ABI = [
   { name:"feeBps", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
   { name:"hasClaimed", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"bool"}] },
 ] as const;
+
+// ─── Phase 3 Governance Addresses ────────────────────────────────────────────
+export const PRED_STAKING_ADDRESS = process.env.NEXT_PUBLIC_PRED_STAKING as `0x${string}`;
+export const GOVERNANCE_ADDRESS = process.env.NEXT_PUBLIC_GOVERNANCE as `0x${string}`;
+
+// ─── PREDStaking ABI ──────────────────────────────────────────────────────────
+export const PRED_STAKING_ABI = [
+  { name:"stake", type:"function", stateMutability:"nonpayable", inputs:[{name:"amount",type:"uint256"}], outputs:[] },
+  { name:"unstake", type:"function", stateMutability:"nonpayable", inputs:[{name:"amount",type:"uint256"}], outputs:[] },
+  { name:"claimReward", type:"function", stateMutability:"nonpayable", inputs:[], outputs:[] },
+  { name:"depositReward", type:"function", stateMutability:"payable", inputs:[], outputs:[] },
+  { name:"getStakeInfo", type:"function", stateMutability:"view", inputs:[{name:"user",type:"address"}], outputs:[{name:"staked",type:"uint256"},{name:"pendingReward",type:"uint256"},{name:"share",type:"uint256"}] },
+  { name:"stakedBalance", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"totalStaked", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"earned", type:"function", stateMutability:"view", inputs:[{name:"account",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"rewards", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"Staked", type:"event", inputs:[{name:"user",type:"address",indexed:true},{name:"amount",type:"uint256",indexed:false}] },
+  { name:"Unstaked", type:"event", inputs:[{name:"user",type:"address",indexed:true},{name:"amount",type:"uint256",indexed:false}] },
+  { name:"RewardClaimed", type:"event", inputs:[{name:"user",type:"address",indexed:true},{name:"amount",type:"uint256",indexed:false}] },
+] as const;
+
+// ─── Governance ABI ───────────────────────────────────────────────────────────
+export const GOVERNANCE_ABI = [
+  { name:"propose", type:"function", stateMutability:"nonpayable", inputs:[{name:"title",type:"string"},{name:"description",type:"string"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"vote", type:"function", stateMutability:"nonpayable", inputs:[{name:"proposalId",type:"uint256"},{name:"support",type:"bool"}], outputs:[] },
+  { name:"execute", type:"function", stateMutability:"nonpayable", inputs:[{name:"proposalId",type:"uint256"}], outputs:[] },
+  { name:"cancel", type:"function", stateMutability:"nonpayable", inputs:[{name:"proposalId",type:"uint256"}], outputs:[] },
+  { name:"getAllProposals", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"tuple[]",components:[{name:"id",type:"uint256"},{name:"proposer",type:"address"},{name:"title",type:"string"},{name:"description",type:"string"},{name:"forVotes",type:"uint256"},{name:"againstVotes",type:"uint256"},{name:"startTime",type:"uint256"},{name:"endTime",type:"uint256"},{name:"state",type:"uint8"},{name:"executed",type:"bool"}]}] },
+  { name:"getProposalState", type:"function", stateMutability:"view", inputs:[{name:"id",type:"uint256"}], outputs:[{name:"",type:"uint8"}] },
+  { name:"hasVoted", type:"function", stateMutability:"view", inputs:[{name:"",type:"uint256"},{name:"",type:"address"}], outputs:[{name:"",type:"bool"}] },
+  { name:"proposalCount", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"quorum", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"votingPeriod", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"ProposalCreated", type:"event", inputs:[{name:"id",type:"uint256",indexed:true},{name:"proposer",type:"address",indexed:true},{name:"title",type:"string",indexed:false}] },
+  { name:"VoteCast", type:"event", inputs:[{name:"proposalId",type:"uint256",indexed:true},{name:"voter",type:"address",indexed:true},{name:"support",type:"bool",indexed:false},{name:"weight",type:"uint256",indexed:false}] },
+] as const;
