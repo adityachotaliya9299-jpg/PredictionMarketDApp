@@ -156,7 +156,7 @@ export function useClaimFaucet() {
   const claim = async () => writeContractAsync({
     address: PRED_FAUCET_ADDRESS, abi: PRED_FAUCET_ABI,
     functionName: "claim",
-    gas: BigInt(80000),
+    gas: BigInt(100000),
   });
   return { claim, isPending, isConfirming, isSuccess };
 }
