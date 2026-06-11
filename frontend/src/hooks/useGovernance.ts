@@ -118,6 +118,7 @@ export function useCreateProposal() {
   const propose = async (title: string, description: string) => writeContractAsync({
     address: GOVERNANCE_ADDRESS, abi: GOVERNANCE_ABI,
     functionName: "propose", args: [title, description],
+    gas: BigInt(300000),
   });
   return { propose, isPending, isConfirming, isSuccess };
 }
@@ -128,6 +129,7 @@ export function useCastVote() {
   const castVote = async (proposalId: bigint, support: boolean) => writeContractAsync({
     address: GOVERNANCE_ADDRESS, abi: GOVERNANCE_ABI,
     functionName: "vote", args: [proposalId, support],
+    gas: BigInt(100000),
   });
   return { castVote, isPending, isConfirming, isSuccess };
 }
