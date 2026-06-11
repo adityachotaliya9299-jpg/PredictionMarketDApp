@@ -1,7 +1,7 @@
 import { GraphQLClient, gql } from "graphql-request";
 
 export const client = new GraphQLClient(
-  "https://api.studio.thegraph.com/query/1744854/predict-x/v0.0.4"
+  "https://api.studio.thegraph.com/query/1744854/predict-x/v0.0.5"
 );
 
 export const GET_MARKETS = gql`
