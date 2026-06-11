@@ -561,3 +561,47 @@ export const PRED_FAUCET_ABI = [
   { name:"claimAmount", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
   { name:"Claimed", type:"event", inputs:[{name:"user",type:"address",indexed:true},{name:"amount",type:"uint256",indexed:false}] },
 ] as const;
+
+// ─── Phase 4 Addresses ────────────────────────────────────────────────────────
+export const USDC_FACTORY_ADDRESS = process.env.NEXT_PUBLIC_USDC_FACTORY as `0x${string}`;
+export const SCALAR_FACTORY_ADDRESS = process.env.NEXT_PUBLIC_SCALAR_FACTORY as `0x${string}`;
+export const USDC_ADDRESS = process.env.NEXT_PUBLIC_USDC_ADDRESS as `0x${string}`;
+
+// ─── USDC ABI (minimal ERC20) ─────────────────────────────────────────────────
+export const USDC_ABI = [
+  { name:"balanceOf", type:"function", stateMutability:"view", inputs:[{name:"account",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"approve", type:"function", stateMutability:"nonpayable", inputs:[{name:"spender",type:"address"},{name:"amount",type:"uint256"}], outputs:[{name:"",type:"bool"}] },
+  { name:"allowance", type:"function", stateMutability:"view", inputs:[{name:"owner",type:"address"},{name:"spender",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"decimals", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint8"}] },
+] as const;
+
+// ─── USDC Factory ABI ─────────────────────────────────────────────────────────
+export const USDC_FACTORY_ABI = [
+  { name:"createMarket", type:"function", stateMutability:"nonpayable", inputs:[{name:"question",type:"string"},{name:"category",type:"string"},{name:"expirationTime",type:"uint256"}], outputs:[{name:"market",type:"address"},{name:"marketId",type:"bytes32"}] },
+  { name:"getAllMarkets", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"tuple[]",components:[{name:"marketAddress",type:"address"},{name:"creator",type:"address"},{name:"question",type:"string"},{name:"category",type:"string"},{name:"expirationTime",type:"uint256"},{name:"active",type:"bool"}]}] },
+  { name:"getMarketCount", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+] as const;
+
+// ─── USDC Market ABI ──────────────────────────────────────────────────────────
+export const USDC_MARKET_ABI = [
+  { name:"buyYesShares", type:"function", stateMutability:"nonpayable", inputs:[{name:"amount",type:"uint256"}], outputs:[{name:"shares",type:"uint256"}] },
+  { name:"buyNoShares", type:"function", stateMutability:"nonpayable", inputs:[{name:"amount",type:"uint256"}], outputs:[{name:"shares",type:"uint256"}] },
+  { name:"resolve", type:"function", stateMutability:"nonpayable", inputs:[], outputs:[] },
+  { name:"claimReward", type:"function", stateMutability:"nonpayable", inputs:[], outputs:[] },
+  { name:"getMarketInfo", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"_marketId",type:"bytes32"},{name:"_question",type:"string"},{name:"_category",type:"string"},{name:"_expirationTime",type:"uint256"},{name:"_resolved",type:"bool"},{name:"_totalPool",type:"uint256"}] },
+  { name:"yesShares", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"noShares", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"uint256"}] },
+  { name:"totalYesShares", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"totalNoShares", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"hasClaimed", type:"function", stateMutability:"view", inputs:[{name:"",type:"address"}], outputs:[{name:"",type:"bool"}] },
+  { name:"feeBps", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+  { name:"resolved", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"bool"}] },
+  { name:"outcome", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint8"}] },
+] as const;
+
+// ─── Scalar Factory ABI ───────────────────────────────────────────────────────
+export const SCALAR_FACTORY_ABI = [
+  { name:"createScalarMarket", type:"function", stateMutability:"nonpayable", inputs:[{name:"question",type:"string"},{name:"ranges",type:"string[]"},{name:"priceFeed",type:"address"},{name:"expirationTime",type:"uint256"}], outputs:[{name:"market",type:"address"},{name:"marketId",type:"bytes32"}] },
+  { name:"getAllMarkets", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"tuple[]",components:[{name:"marketAddress",type:"address"},{name:"marketId",type:"bytes32"},{name:"creator",type:"address"},{name:"question",type:"string"},{name:"ranges",type:"string[]"},{name:"priceFeed",type:"address"},{name:"expirationTime",type:"uint256"},{name:"active",type:"bool"}]}] },
+  { name:"getMarketCount", type:"function", stateMutability:"view", inputs:[], outputs:[{name:"",type:"uint256"}] },
+] as const;
