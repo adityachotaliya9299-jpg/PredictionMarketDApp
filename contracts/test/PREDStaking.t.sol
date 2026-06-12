@@ -210,3 +210,133 @@ contract PREDStakingTest is Test {
         assertEq(staking.stakedBalance(address(this)), 0);
     }
 }
+
+contract PREDStakingEdgeTest is Test {
+    PREDToken public pred;
+    PREDStaking public staking;
+    address public owner = address(1);
+    address public user1 = address(2);
+    address public user2 = address(3);
+
+    function setUp() public {
+        vm.startPrank(owner);
+        pred = new PREDToken(owner);
+        staking = new PREDStaking(address(pred), owner);
+        pred.transfer(user1, 5000 * 1e18);
+        pred.transfer(user2, 5000 * 1e18);
+        vm.stopPrank();
+    }
+
+    function test_StakeExactMinimum() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 1 * 1e18);
+        staking.stake(1 * 1e18);
+        vm.stopPrank();
+        assertEq(staking.stakedBalance(user1), 1 * 1e18);
+    }
+
+    function test_MultipleStakesAccumulate() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 300 * 1e18);
+        staking.stake(100 * 1e18);
+        staking.stake(100 * 1e18);
+        staking.stake(100 * 1e18);
+        vm.stopPrank();
+        assertEq(staking.stakedBalance(user1), 300 * 1e18);
+    }
+
+    function test_StakeUnstakeStakeAgain() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 200 * 1e18);
+        staking.stake(100 * 1e18);
+        staking.unstake(100 * 1e18);
+        staking.stake(100 * 1e18);
+        vm.stopPrank();
+        assertEq(staking.stakedBalance(user1), 100 * 1e18);
+    }
+
+    function test_RewardAfterPartialUnstake() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 200 * 1e18);
+        staking.stake(200 * 1e18);
+        vm.stopPrank();
+        vm.deal(owner, 1 ether);
+        vm.prank(owner);
+        staking.depositReward{value: 1 ether}();
+        vm.prank(user1);
+        staking.unstake(100 * 1e18);
+        assertGt(staking.earned(user1), 0);
+    }
+
+    function test_TotalStakedAfterMultipleUsers() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 500 * 1e18);
+        staking.stake(500 * 1e18);
+        vm.stopPrank();
+        vm.startPrank(user2);
+        pred.approve(address(staking), 300 * 1e18);
+        staking.stake(300 * 1e18);
+        vm.stopPrank();
+        assertEq(staking.totalStaked(), 800 * 1e18);
+    }
+
+    function test_TotalStakedDecreasesOnUnstake() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 500 * 1e18);
+        staking.stake(500 * 1e18);
+        staking.unstake(200 * 1e18);
+        vm.stopPrank();
+        assertEq(staking.totalStaked(), 300 * 1e18);
+    }
+
+    function test_RewardPerTokenIncreasesOnDeposit() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 100 * 1e18);
+        staking.stake(100 * 1e18);
+        vm.stopPrank();
+        uint256 before = staking.rewardPerTokenStored();
+        vm.deal(owner, 1 ether);
+        vm.prank(owner);
+        staking.depositReward{value: 1 ether}();
+        assertGt(staking.rewardPerTokenStored(), before);
+    }
+
+    function test_ZeroEarnedBeforeDeposit() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 100 * 1e18);
+        staking.stake(100 * 1e18);
+        vm.stopPrank();
+        assertEq(staking.earned(user1), 0);
+    }
+
+    function test_EarnedAfterMultipleDeposits() public {
+        vm.startPrank(user1);
+        pred.approve(address(staking), 100 * 1e18);
+        staking.stake(100 * 1e18);
+        vm.stopPrank();
+        vm.deal(owner, 2 ether);
+        vm.prank(owner);
+        staking.depositReward{value: 1 ether}();
+        vm.prank(owner);
+        staking.depositReward{value: 1 ether}();
+        assertGt(staking.earned(user1), 1 ether - 1e10);
+    }
+
+    function testFuzz_RewardProportional(uint256 stake1, uint256 stake2) public {
+        stake1 = bound(stake1, 1 * 1e18, 1000 * 1e18);
+        stake2 = bound(stake2, 1 * 1e18, 1000 * 1e18);
+        vm.startPrank(user1);
+        pred.approve(address(staking), stake1);
+        staking.stake(stake1);
+        vm.stopPrank();
+        vm.startPrank(user2);
+        pred.approve(address(staking), stake2);
+        staking.stake(stake2);
+        vm.stopPrank();
+        vm.deal(owner, 1 ether);
+        vm.prank(owner);
+        staking.depositReward{value: 1 ether}();
+        uint256 total = staking.earned(user1) + staking.earned(user2);
+        assertApproxEqAbs(total, 1 ether, 1e10);
+    }
+}
