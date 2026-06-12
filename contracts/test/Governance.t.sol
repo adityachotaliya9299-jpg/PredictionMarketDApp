@@ -174,7 +174,7 @@ contract GovernanceTest is Test {
         _stake(user1, STAKE_AMOUNT);
         _stake(user2, STAKE_AMOUNT);
         uint256 id = _propose(user1, "Title", "Desc");
-        vm.warp(block.timestamp + gov.votingPeriod() + 1);
+        vm.warp(gov.getProposal(id).endTime + 1);
         vm.prank(user2);
         vm.expectRevert();
         gov.vote(id, true);
@@ -193,7 +193,7 @@ contract GovernanceTest is Test {
         uint256 id = _propose(user1, "Title", "Desc");
         vm.prank(user2);
         gov.vote(id, true);
-        vm.warp(block.timestamp + gov.votingPeriod() + 1);
+        vm.warp(gov.getProposal(id).endTime + 1);
         assertEq(uint256(gov.getProposalState(id)), 2); // Failed
     }
 
@@ -203,7 +203,7 @@ contract GovernanceTest is Test {
         uint256 id = _propose(user1, "Title", "Desc");
         vm.prank(user2);
         gov.vote(id, true);
-        vm.warp(block.timestamp + gov.votingPeriod() + 1);
+        vm.warp(gov.getProposal(id).endTime + 1);
         assertEq(uint256(gov.getProposalState(id)), 1); // Passed
     }
 
@@ -216,7 +216,7 @@ contract GovernanceTest is Test {
         gov.vote(id, true);
         vm.prank(user2);
         gov.vote(id, false);
-        vm.warp(block.timestamp + gov.votingPeriod() + 1);
+        vm.warp(gov.getProposal(id).endTime + 1);
         assertEq(uint256(gov.getProposalState(id)), 2); // Failed
     }
 
