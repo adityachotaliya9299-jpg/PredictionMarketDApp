@@ -98,3 +98,95 @@ contract PREDFaucetTest is Test {
         assertEq(faucet.faucetBalance(), FAUCET_DEPOSIT + 1000 * 1e18);
     }
 }
+
+contract PREDFaucetEdgeTest is Test {
+    PREDToken public pred;
+    PREDFaucet public faucet;
+    address public owner = address(1);
+
+    function setUp() public {
+        vm.startPrank(owner);
+        pred = new PREDToken(owner);
+        faucet = new PREDFaucet(address(pred), owner);
+        pred.approve(address(faucet), 10_000 * 1e18);
+        faucet.deposit(10_000 * 1e18);
+        vm.stopPrank();
+    }
+
+    function test_ClaimAmountMatchesBalance() public {
+        address user = address(99);
+        vm.prank(user);
+        faucet.claim();
+        assertEq(pred.balanceOf(user), faucet.claimAmount());
+    }
+
+    function test_FaucetTokenAddress() public view {
+        assertEq(address(faucet.predToken()), address(pred));
+    }
+
+    function test_SetClaimAmountThenClaim() public {
+        vm.prank(owner);
+        faucet.setClaimAmount(200 * 1e18);
+        address user = address(99);
+        vm.prank(user);
+        faucet.claim();
+        assertEq(pred.balanceOf(user), 200 * 1e18);
+    }
+
+    function test_MultipleDepositsSumCorrectly() public {
+        uint256 before = faucet.faucetBalance();
+        vm.startPrank(owner);
+        pred.approve(address(faucet), 1000 * 1e18);
+        faucet.deposit(1000 * 1e18);
+        vm.stopPrank();
+        assertEq(faucet.faucetBalance(), before + 1000 * 1e18);
+    }
+
+    function testFuzz_ManyUsersClaim(uint8 numUsers) public {
+        vm.assume(numUsers > 0 && numUsers < 20);
+        for (uint8 i = 1; i <= numUsers; i++) {
+            address user = address(uint160(100 + i));
+            vm.prank(user);
+            faucet.claim();
+            assertEq(pred.balanceOf(user), faucet.claimAmount());
+            assertTrue(faucet.hasClaimed(user));
+        }
+    }
+
+    function test_OwnerCanChangeAndReset() public {
+        vm.prank(owner);
+        faucet.setClaimAmount(50 * 1e18);
+        assertEq(faucet.claimAmount(), 50 * 1e18);
+        vm.prank(owner);
+        faucet.setClaimAmount(100 * 1e18);
+        assertEq(faucet.claimAmount(), 100 * 1e18);
+    }
+
+    function test_RevertDepositNotOwner() public {
+        address user = address(99);
+        vm.startPrank(user);
+        pred.approve(address(faucet), 100 * 1e18);
+        vm.expectRevert();
+        faucet.deposit(100 * 1e18);
+        vm.stopPrank();
+    }
+
+    function test_HasNotClaimedBeforeInteraction() public view {
+        assertFalse(faucet.hasClaimed(address(999)));
+    }
+
+    function test_FaucetBalanceAfterMultipleClaims() public {
+        uint256 before = faucet.faucetBalance();
+        vm.prank(address(2)); faucet.claim();
+        vm.prank(address(3)); faucet.claim();
+        vm.prank(address(4)); faucet.claim();
+        assertEq(faucet.faucetBalance(), before - faucet.claimAmount() * 3);
+    }
+
+    function test_ClaimEmitsEvent() public {
+        vm.expectEmit(true, false, false, true);
+        emit PREDFaucet.Claimed(address(99), faucet.claimAmount());
+        vm.prank(address(99));
+        faucet.claim();
+    }
+}
