@@ -1,136 +1,109 @@
-# PredictX — Decentralized Prediction Market
+# PredictX - Decentralized Prediction Market Protocol
 
 <div align="center">
 
 ![PredictX Banner](https://img.shields.io/badge/PredictX-Decentralized_Prediction_Market-22d3ee?style=for-the-badge&logo=ethereum)
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-prediction--market--d--app.vercel.app-22d3ee?style=flat-square&logo=vercel)](https://prediction-market-d-app.vercel.app/)
-[![Sepolia](https://img.shields.io/badge/Network-Sepolia_Testnet-627eea?style=flat-square&logo=ethereum)](https://sepolia.etherscan.io/)
+[![Tests](https://img.shields.io/badge/Tests-300%2B_passing-brightgreen?style=flat-square&logo=ethereum)](contracts/test/)
+[![Deployed](https://img.shields.io/badge/Deployed-Sepolia-627eea?style=flat-square&logo=ethereum)](https://prediction-market-d-app.vercel.app/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![Solidity](https://img.shields.io/badge/Solidity-0.8.24-363636?style=flat-square&logo=solidity)](https://soliditylang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.24-blue?style=flat-square)](contracts/src/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square)](frontend/)
 
-**A full-stack decentralized prediction market dApp on Ethereum Sepolia testnet. Trade on real-world outcomes using parimutuel pooling, earn PRED tokens for participation, and create multi-outcome markets.**
-
-[Live Demo](https://prediction-market-d-app.vercel.app/) · [Contracts on Etherscan](#deployed-contracts) · [Report Bug](https://github.com/adityachotaliya9299-jpg/PredictionMarketDApp/issues)
+**Live Demo** → [prediction-market-d-app.vercel.app](https://predictx-protocol.vercel.app/)
 
 </div>
 
 ---
 
-## Table of Contents
+## What is PredictX?
 
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Deployed Contracts](#deployed-contracts)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Smart Contracts](#smart-contracts)
-- [Frontend](#frontend)
-- [The Graph Subgraph](#the-graph-subgraph)
-- [Phase 3 Features](#phase-3-features)
-- [Screenshots](#screenshots)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Overview
-
-PredictX is a decentralized prediction market protocol built on Ethereum. Users can:
-
-- **Create** YES/NO prediction markets or multi-outcome markets on any topic
-- **Trade** by buying shares in outcomes using ETH
-- **Earn** PRED tokens as rewards for creating markets and trading
-- **Refer** other users and earn 0.5% of their trade volume in ETH
-- **Monitor** live ETH/BTC prices powered by Chainlink oracles
-
-Markets use a **parimutuel pooling model** — the entire pool is redistributed to winners proportionally based on their share of the winning outcome. Probabilities are derived dynamically from the ratio of ETH in each outcome pool.
+PredictX is a permissionless, trustless prediction market protocol on Ethereum. Anyone can create a market on any topic, trade ETH or USDC on outcomes, and earn PRED token rewards — entirely on-chain with no centralized backend.
 
 ---
 
 ## Features
 
-### Core Protocol
-- ✅ YES/NO parimutuel prediction markets
-- ✅ Multi-outcome markets (2–10 outcomes per market)
-- ✅ Dynamic probability pricing (share ratio = probability)
-- ✅ Protocol fee system (2% per trade, configurable)
-- ✅ On-chain oracle-based resolution
-- ✅ Claim rewards after market resolves
+### Market Types
+| Type | Description | Currency |
+|---|---|---|
+| YES/NO Markets | Binary parimutuel markets | ETH |
+| Multi-Outcome Markets | 2-10 outcomes, parimutuel | ETH |
+| USDC Markets | Stablecoin binary markets | USDC |
+| Scalar Markets | Price-range predictions via Chainlink | ETH |
 
-### Phase 3 — DeFi Layer
-- ✅ **PRED Token** — ERC20 governance/reward token (100M max supply)
-- ✅ **Liquidity Mining** — 100 PRED per market created, 10 PRED per trade
-- ✅ **Referral System** — On-chain referral tracking, earn 0.5% ETH per referred trade
-- ✅ **Chainlink Oracle** — Live ETH/USD and BTC/USD price feeds on Sepolia
+### DeFi Layer
+- **PRED Token** — ERC20 reward token (100M max supply)
+- **Liquidity Mining** — 100 PRED per market created, 10 PRED per trade
+- **Referral System** — 0.5% ETH per referred trade
+- **PRED Staking** — Stake PRED, earn share of protocol fees in ETH
+- **Governance** — Vote on proposals using staked PRED
+- **PRED Faucet** — 100 PRED one-time claim for new users
 
-### Frontend
-- ✅ Next.js 14 with wagmi v2 + RainbowKit wallet connection
-- ✅ The Graph subgraph for fast indexed queries
-- ✅ Real-time market data with probability bars
-- ✅ Portfolio dashboard with rewards tracking
-- ✅ Leaderboard with top creators
-- ✅ Mobile-responsive design
-- ✅ Dark mode UI
+### Infrastructure
+- **Chainlink Oracles** — Live ETH/USD and BTC/USD price feeds
+- **The Graph** — Custom subgraph v0.0.5 for fast indexed queries
+- **300+ Tests** — Foundry test suite with fuzz and invariant testing
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        Frontend (Next.js 14)                │
-│  wagmi v2 · RainbowKit · viem · The Graph · Chainlink       │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ RPC + GraphQL
-       ┌───────────────▼──────────────────┐
-       │         Sepolia Testnet          │
-       │  ┌─────────────────────────────┐ │
-       │  │      MarketFactory          │ │
-       │  │  (deploys PredictionMarket  │ │
-       │  │   + wires Phase 3 rewards)  │ │
-       │  └──────────┬──────────────────┘ │
-       │             │ creates            │
-       │  ┌──────────▼──────────────────┐ │
-       │  │    PredictionMarket         │ │
-       │  │  (YES/NO parimutuel pool)   │ │
-       │  └─────────────────────────────┘ │
-       │  ┌─────────────────────────────┐ │
-       │  │   MultiMarketFactory        │ │
-       │  │   MultiOutcomeMarket        │ │
-       │  │   (2–10 outcome markets)    │ │
-       │  └─────────────────────────────┘ │
-       │  ┌─────────────────────────────┐ │
-       │  │  PREDToken · LiquidityMining│ │
-       │  │  ReferralSystem · Chainlink │ │
-       │  └─────────────────────────────┘ │
-       └──────────────────────────────────┘
-                       │
-       ┌───────────────▼───────────────────┐
-       │   The Graph — predict-x subgraph  │
-       │   (indexes events, fast queries)  │
-       └───────────────────────────────────┘
+PredictX Protocol
+├── Core Markets
+│   ├── MarketFactory.sol          — Deploys YES/NO markets
+│   ├── PredictionMarket.sol       — Parimutuel YES/NO trading
+│   ├── MultiMarketFactory.sol     — Deploys multi-outcome markets
+│   ├── MultiOutcomeMarket.sol     — 2-10 outcome parimutuel
+│   ├── USDCMarketFactory.sol      — Deploys USDC markets
+│   ├── USDCMarket.sol             — USDC stablecoin trading
+│   └── ScalarMarketFactory.sol    — Price-range markets
+│
+├── Oracles
+│   ├── ChainlinkOracle.sol        — Live price feeds (ETH/BTC)
+│   └── MultiOracle.sol            — Multi-outcome resolution
+│
+├── DeFi Layer
+│   ├── PREDToken.sol              — ERC20 reward token
+│   ├── LiquidityMining.sol        — PRED distribution
+│   ├── ReferralSystem.sol         — On-chain referrals
+│   ├── PREDStaking.sol            — Stake PRED, earn ETH
+│   ├── Governance.sol             — On-chain voting
+│   └── PREDFaucet.sol             — New user onboarding
+│
+└── Frontend
+    ├── /                          — Market listing
+    ├── /create                    — 4-step market wizard
+    ├── /markets/[address]         — Market detail + trading
+    ├── /multi                     — Multi-outcome listing
+    ├── /usdc                      — USDC market listing
+    ├── /scalar                    — Scalar market listing
+    ├── /portfolio                 — Rewards dashboard
+    ├── /staking                   — PRED staking UI
+    ├── /governance                — Proposals + voting
+    ├── /leaderboard               — Top creators
+    └── /analytics                 — Protocol statistics
 ```
 
 ---
 
-## Deployed Contracts
+## Deployed Contracts (Sepolia)
 
-All contracts deployed on **Sepolia Testnet**.
-
-| Contract | Address | Description |
+| Contract | Address | Etherscan |
 |---|---|---|
-| MarketFactory | [`0x51430273...`](https://sepolia.etherscan.io/address/0x51430273cA467Fd6a961598B5bcD28d6532A8D33) | Deploys YES/NO markets |
-| ChainlinkOracle | [`0x4cb12c69...`](https://sepolia.etherscan.io/address/0x4cb12c69E85A280C41815805C1446b121E8c5462) | Price feed oracle |
-| PREDToken | [`0x1a5ecdbc...`](https://sepolia.etherscan.io/address/0x1a5ecdbCbe1931C4e745B82B3C8E09CBc4015C49) | ERC20 reward token |
-| LiquidityMining | [`0xAC8e774d...`](https://sepolia.etherscan.io/address/0xAC8e774dd8218D716F455AB7872E7c0843985981) | PRED token distributor |
-| ReferralSystem | [`0xaBa4F2D4...`](https://sepolia.etherscan.io/address/0xaBa4F2D457CE0fEf0C06A1e89A3662980C8e1F4A) | On-chain referral tracking |
-| MultiOracle | [`0x1aB76B75...`](https://sepolia.etherscan.io/address/0x1aB76B758Cb2c45Ca6E876294F7972133Ebd1619) | Multi-outcome resolution |
-| MultiMarketFactory | [`0x30a99B8A...`](https://sepolia.etherscan.io/address/0x30a99B8A1C7b71314160c0396b49eE9db8bbC4Ab) | Deploys multi-outcome markets |
-
-**Subgraph:** [predict-x v0.0.4](https://api.studio.thegraph.com/query/1744854/predict-x/v0.0.4)
+| MarketFactory | `0x51430273cA467Fd6a961598B5bcD28d6532A8D33` | [View](https://sepolia.etherscan.io/address/0x51430273cA467Fd6a961598B5bcD28d6532A8D33) |
+| MultiMarketFactory | `0x30a99B8A1C7b71314160c0396b49eE9db8bbC4Ab` | [View](https://sepolia.etherscan.io/address/0x30a99B8A1C7b71314160c0396b49eE9db8bbC4Ab) |
+| USDCMarketFactory | `0xd320273497BE8ef957d9F1fF27A0c99F0C78dB4D` | [View](https://sepolia.etherscan.io/address/0xd320273497BE8ef957d9F1fF27A0c99F0C78dB4D) |
+| ScalarMarketFactory | `0xbb1002BCeca660E9A5fBD88365830AFeAF1760c1` | [View](https://sepolia.etherscan.io/address/0xbb1002BCeca660E9A5fBD88365830AFeAF1760c1) |
+| ChainlinkOracle | `0x4cb12c69E85A280C41815805C1446b121E8c5462` | [View](https://sepolia.etherscan.io/address/0x4cb12c69E85A280C41815805C1446b121E8c5462) |
+| MultiOracle | `0x1aB76B758Cb2c45Ca6E876294F7972133Ebd1619` | [View](https://sepolia.etherscan.io/address/0x1aB76B758Cb2c45Ca6E876294F7972133Ebd1619) |
+| PREDToken | `0x1a5ecdbCbe1931C4e745B82B3C8E09CBc4015C49` | [View](https://sepolia.etherscan.io/address/0x1a5ecdbCbe1931C4e745B82B3C8E09CBc4015C49) |
+| LiquidityMining | `0xAC8e774dd8218D716F455AB7872E7c0843985981` | [View](https://sepolia.etherscan.io/address/0xAC8e774dd8218D716F455AB7872E7c0843985981) |
+| ReferralSystem | `0xaBa4F2D457CE0fEf0C06A1e89A3662980C8e1F4A` | [View](https://sepolia.etherscan.io/address/0xaBa4F2D457CE0fEf0C06A1e89A3662980C8e1F4A) |
+| PREDStaking | `0xE4b897f14E3c49137d34440fa2FCb207902a715c` | [View](https://sepolia.etherscan.io/address/0xE4b897f14E3c49137d34440fa2FCb207902a715c) |
+| Governance | `0xdb4A588aDE922f5E8F332317cd9451001048a378` | [View](https://sepolia.etherscan.io/address/0xdb4A588aDE922f5E8F332317cd9451001048a378) |
+| PREDFaucet | `0x422109b25aA1D4885289a1ED67ad2fCA4Fa157A7` | [View](https://sepolia.etherscan.io/address/0x422109b25aA1D4885289a1ED67ad2fCA4Fa157A7) |
 
 ---
 
@@ -139,292 +112,155 @@ All contracts deployed on **Sepolia Testnet**.
 | Layer | Technology |
 |---|---|
 | Smart Contracts | Solidity 0.8.24, Foundry |
-| Frontend Framework | Next.js 14 (App Router) |
-| Wallet / Web3 | wagmi v2, viem, RainbowKit |
-| Indexing | The Graph (custom subgraph) |
-| Oracle | Chainlink Price Feeds |
-| Styling | Inline styles (SSR-safe) |
+| Frontend | Next.js 14 App Router, TypeScript |
+| Web3 | wagmi v2, viem, RainbowKit |
+| Indexing | The Graph (custom subgraph v0.0.5) |
+| Oracle | Chainlink Price Feeds (Sepolia) |
 | Deployment | Vercel |
-| Testing | Forge (130+ tests) |
+| Testing | Forge (300+ tests, fuzz + invariant) |
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
 - Foundry (`curl -L https://foundry.paradigm.xyz | bash`)
-- MetaMask with Sepolia ETH ([faucet](https://sepoliafaucet.com))
+- Git
 
-### Clone & Install
+### Installation
 
 ```bash
+# Clone the repo
 git clone https://github.com/adityachotaliya9299-jpg/PredictionMarketDApp.git
 cd PredictionMarketDApp
+
+# Install frontend dependencies
+cd frontend && npm install
+
+# Install contract dependencies
+cd ../contracts && forge install
+```
+
+### Environment Setup
+
+```bash
+cd frontend
+cp .env.example .env.local
+# Edit .env.local — fill in WALLETCONNECT_ID and RPC_URL
+# All contract addresses are pre-filled for Sepolia
 ```
 
 ### Run Frontend
 
 ```bash
 cd frontend
-cp .env.example .env.local
-# Fill in your values in .env.local
-npm install
-npm run build && npm start
+npm run dev
+# Open http://localhost:3000
 ```
 
-### Environment Variables
-
-```env
-NEXT_PUBLIC_FACTORY_ADDRESS=0x51430273cA467Fd6a961598B5bcD28d6532A8D33
-NEXT_PUBLIC_ORACLE_ADDRESS=0x4cb12c69E85A280C41815805C1446b121E8c5462
-NEXT_PUBLIC_WALLETCONNECT_ID=your_walletconnect_project_id
-NEXT_PUBLIC_RPC_URL=your_alchemy_or_infura_sepolia_rpc_url
-NEXT_PUBLIC_PRED_TOKEN=0x1a5ecdbCbe1931C4e745B82B3C8E09CBc4015C49
-NEXT_PUBLIC_LIQUIDITY_MINING=0xAC8e774dd8218D716F455AB7872E7c0843985981
-NEXT_PUBLIC_REFERRAL_SYSTEM=0xaBa4F2D457CE0fEf0C06A1e89A3662980C8e1F4A
-NEXT_PUBLIC_CHAINLINK_ORACLE=0x4cb12c69E85A280C41815805C1446b121E8c5462
-NEXT_PUBLIC_MULTI_ORACLE=0x1aB76B758Cb2c45Ca6E876294F7972133Ebd1619
-NEXT_PUBLIC_MULTI_FACTORY=0x30a99B8A1C7b71314160c0396b49eE9db8bbC4Ab
-```
-
-### Run Smart Contract Tests
+### Run Tests
 
 ```bash
 cd contracts
 forge test -vv
+# Expected: 300+ tests, 0 failures
+```
+
+### Run Tests with Coverage
+
+```bash
+cd contracts
+forge coverage
 ```
 
 ---
 
-## Smart Contracts
+## How It Works
 
-### PredictionMarket.sol
+### Parimutuel Model
 
-Core YES/NO parimutuel market contract.
-
-```
-- buyYesShares()  — buy YES shares with ETH
-- buyNoShares()   — buy NO shares with ETH
-- resolve()       — trigger oracle resolution after expiry
-- claimReward()   — claim winning payout
-```
-
-**Probability formula:**
-```
-P(YES) = yesPool / (yesPool + noPool)
-P(NO)  = noPool  / (yesPool + noPool)
-```
-
-**Payout formula:**
-```
-payout = (userShares / winningPool) × totalPool
-```
-
-### MarketFactory.sol
-
-Deploys `PredictionMarket` instances. Manages global oracle, fees, and Phase 3 integrations.
+All ETH from all traders accumulates in a single pool. When the market resolves, the entire pool is redistributed to winners proportionally:
 
 ```
-- createMarket(question, category, expirationTime)
-- setLiquidityMining(address)
-- setReferralSystem(address)
-- getMarket(bytes32 marketId)
+P(YES) = yesPool / totalPool
+P(NO)  = noPool  / totalPool
+
+Payout = (userShares / winningPool) × totalPool
 ```
 
-Gas cost per market creation: ~3M gas (deploys child contract).
+No market makers. No order books. The crowd sets the price.
 
-### MultiOutcomeMarket.sol
-
-Supports 2–10 outcome parimutuel markets.
+### PRED Token Flow
 
 ```
-- buyShares(uint8 outcomeIndex) payable
-- resolve()
-- claimReward()
-- getAllOutcomePools() → uint256[]
-- getExpectedPayout(address user) → uint256
+Create Market  → +100 PRED (via LiquidityMining)
+Place Trade    → +10  PRED (via LiquidityMining)
+Refer Friend   → +0.5% ETH of their trades (via ReferralSystem)
+Stake PRED     → +ETH share of protocol fees (via PREDStaking)
 ```
 
-### PREDToken.sol
+### Governance
 
-ERC20 with capped supply and minter role.
-
-```
-- Max supply: 100,000,000 PRED
-- Initial mint: 10,000,000 PRED to deployer
-- Minter role assigned to LiquidityMining contract
-```
-
-### LiquidityMining.sol
-
-Tracks and distributes PRED rewards.
-
-```
-- recordCreation(address creator)  → +100 PRED pending
-- recordTrade(address trader)      → +10 PRED pending
-- claimRewards()                   → mint pending PRED to caller
-```
-
-### ReferralSystem.sol
-
-On-chain referral tracking with ETH fee sharing.
-
-```
-- registerReferral(user, referrer)
-- recordTrade(trader, amount) payable
-- claimEarnings()
-- Referral fee: 0.5% of trade amount
-```
+1. Stake 100+ PRED to create proposals
+2. Any staker can vote FOR or AGAINST
+3. Voting period: 3 days
+4. Quorum: 1,000 PRED total votes required
+5. Simple majority wins
 
 ---
 
-## Frontend
+## Subgraph
 
-### Pages
+**Endpoint:** `https://api.studio.thegraph.com/query/1744854/predict-x/v0.0.5`
 
-| Route | Description |
+**Indexes:**
+- `Market` — YES/NO market creation and trades
+- `Trade` — Individual trade records
+- `MultiMarket` — Multi-outcome market creation
+- `MultiTrade` — Multi-outcome trade records
+
+---
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for our security policy, threat model, and vulnerability reporting process.
+
+See [docs/PredictX_SecurityPaper.docx](docs/PredictX_SecurityPaper.docx) for the complete security analysis.
+
+> ⚠️ PredictX has not been audited by a third-party security firm. Do NOT use with real mainnet funds.
+
+---
+
+## Documentation
+
+| Document | Description |
 |---|---|
-| `/` | Market listing with search and category filter |
-| `/create` | 4-step wizard to create YES/NO market |
-| `/markets/[address]` | Market detail with trading panel |
-| `/multi` | Multi-outcome market listing |
-| `/multi/create` | Create multi-outcome market with outcome builder |
-| `/multi/[address]` | Multi-outcome trading page |
-| `/portfolio` | Personal dashboard with rewards and trades |
-| `/leaderboard` | Top creators and all markets |
-| `/admin` | Admin panel for market management |
-
-### Key Hooks
-
-```typescript
-useSubgraphMarkets()       // fetch all markets from The Graph
-useMarketDetail(address)   // full market state via RPC
-useBuyShares(address)      // buy YES/NO shares
-useCreateMarket()          // create new market
-useUserRewardStats()       // PRED balance, pending rewards, prices
-useMultiMarketDetail()     // multi-outcome market state
-```
-
----
-
-## The Graph Subgraph
-
-Custom subgraph deployed to The Graph Studio indexing:
-
-- `MarketCreated` events — market metadata + category (read via contract call)
-- `SharesPurchased` events — trade history
-- `MarketResolved` events — resolution outcomes
-
-**Endpoint:** `https://api.studio.thegraph.com/query/1744854/predict-x/v0.0.4`
-
-**Sample query:**
-```graphql
-query {
-  markets(orderBy: createdAt, orderDirection: desc) {
-    id
-    address
-    question
-    category
-    creator
-    yesPool
-    noPool
-    resolved
-    outcome
-  }
-}
-```
-
----
-
-## Phase 3 Features
-
-### PRED Token Rewards
-
-Every interaction earns PRED tokens automatically:
-
-| Action | PRED Earned |
-|---|---|
-| Create a market | 100 PRED |
-| Place a trade | 10 PRED |
-
-Claim anytime from the Portfolio page.
-
-### Referral Program
-
-Share your referral link from the Portfolio page. When referred users trade, you earn 0.5% of their trade amount in ETH, claimable at any time.
-
-### Chainlink Price Feeds (Sepolia)
-
-| Feed | Address |
-|---|---|
-| ETH/USD | `0x694AA1769357215DE4FAC081bf1f309aDC325306` |
-| BTC/USD | `0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43` |
-
-Live prices displayed on the Portfolio page, refreshed every 30 seconds.
-
----
-
-## Project Structure
-
-```
-PredictionMarketDApp/
-├── contracts/
-│   ├── src/
-│   │   ├── MarketFactory.sol
-│   │   ├── PredictionMarket.sol
-│   │   ├── PREDToken.sol
-│   │   ├── LiquidityMining.sol
-│   │   ├── ReferralSystem.sol
-│   │   ├── ChainlinkOracle.sol
-│   │   ├── MultiOutcomeMarket.sol
-│   │   ├── MultiMarketFactory.sol
-│   │   ├── MultiOracle.sol
-│   │   └── interfaces/
-│   ├── test/           (130+ Forge tests)
-│   └── script/
-├── frontend/
-│   └── src/
-│       ├── app/        (Next.js pages)
-│       ├── components/
-│       ├── hooks/      (wagmi hooks)
-│       └── lib/        (ABIs, GraphQL)
-└── predictx/           (The Graph subgraph)
-    ├── subgraph.yaml
-    ├── schema.graphql
-    └── src/mapping.ts
-```
+| [SECURITY.md](SECURITY.md) | Security policy and vulnerability reporting |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Development guidelines and PR process |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [docs/PredictX_Whitepaper.pdf](docs/PredictX_Whitepaper.pdf) | Technical whitepaper |
+| [docs/PredictX_SecurityPaper.docx](docs/PredictX_SecurityPaper.docx) | Security analysis |
+| [docs/DuneDashboard.md](docs/DuneDashboard.md) | Dune analytics SQL queries |
 
 ---
 
 ## Contributing
 
-Pull requests are welcome. For major changes, open an issue first.
-
-```bash
-# Fork the repo
-# Create feature branch
-git checkout -b feature/my-feature
-
-# Make changes and test
-cd contracts && forge test
-
-# Commit and push
-git commit -m "feat: add my feature"
-git push origin feature/my-feature
-
-# Open a pull request
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
 
 ---
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE)
 
 ---
 
 <div align="center">
-Built by <a href="https://github.com/adityachotaliya9299-jpg">Aditya Chotaliya</a> · Deployed on <a href="https://prediction-market-d-app.vercel.app/">Vercel</a>
+Built by <a href="https://github.com/adityachotaliya9299-jpg">Aditya Chotaliya</a>
+<br/>
+<a href="https://prediction-market-d-app.vercel.app/">Live Demo</a> · 
+<a href="https://github.com/adityachotaliya9299-jpg/PredictionMarketDApp">GitHub</a> · 
+<a href="https://api.studio.thegraph.com/query/1744854/predict-x/v0.0.5">Subgraph</a>
 </div>
