@@ -139,7 +139,7 @@ contract Phase3IntegrationTest is Test {
     }
 
     function test_ProposalPassesWithMajority() public {
-        // Give enough PRED to meet quorum (1000 PRED)
+        // user1 and user2 both vote FOR — total = 1200 PRED > quorum 1000
         vm.prank(owner);
         pred.transfer(user1, 500 * 1e18);
         vm.startPrank(user1);
@@ -147,13 +147,16 @@ contract Phase3IntegrationTest is Test {
         staking.stake(500 * 1e18);
         vm.stopPrank();
         vm.prank(owner);
-        pred.transfer(user2, 800 * 1e18);
+        pred.transfer(user2, 700 * 1e18);
         vm.startPrank(user2);
-        pred.approve(address(staking), 800 * 1e18);
-        staking.stake(800 * 1e18);
+        pred.approve(address(staking), 700 * 1e18);
+        staking.stake(700 * 1e18);
         vm.stopPrank();
         vm.prank(user1);
         uint256 id = gov.propose("Title", "Desc");
+        // Both vote FOR — 1200 total > 1000 quorum, forVotes > againstVotes
+        vm.prank(user1);
+        gov.vote(id, true);
         vm.prank(user2);
         gov.vote(id, true);
         uint256 endTime = gov.getProposal(id).endTime;
