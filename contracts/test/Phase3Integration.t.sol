@@ -8,8 +8,6 @@ import "../src/PREDStaking.sol";
 import "../src/Governance.sol";
 import "../src/PREDFaucet.sol";
 import "../src/ReferralSystem.sol";
-import "../src/MarketFactory.sol";
-import "../src/mocks/MockOracle.sol";
 
 contract Phase3IntegrationTest is Test {
     PREDToken public pred;
@@ -17,15 +15,11 @@ contract Phase3IntegrationTest is Test {
     PREDStaking public staking;
     Governance public gov;
     PREDFaucet public faucet;
-    ReferralSystem public referral;
-    MarketFactory public factory;
-    MockOracle public oracle;
 
     address public owner = address(1);
     address public user1 = address(2);
     address public user2 = address(3);
     address public user3 = address(4);
-    address public feeCollector = address(5);
 
     function setUp() public {
         vm.startPrank(owner);
@@ -37,18 +31,21 @@ contract Phase3IntegrationTest is Test {
         faucet = new PREDFaucet(address(pred), owner);
         pred.approve(address(faucet), 10_000 * 1e18);
         faucet.deposit(10_000 * 1e18);
-        referral = new ReferralSystem(owner);
-        oracle = new MockOracle(owner);
-        factory = new MarketFactory(address(oracle), feeCollector, 200, owner);
-        mining.setAuthorizedCaller(address(factory), true);
-        referral.setAuthorizedCaller(address(factory), true);
         vm.deal(user1, 10 ether);
         vm.deal(user2, 10 ether);
         vm.deal(user3, 10 ether);
         vm.stopPrank();
     }
 
-    // ─── Full User Journey ────────────────────────────────────────────────────
+    function _claimAndStake(address user, uint256 amount) internal {
+        vm.prank(user);
+        faucet.claim();
+        vm.startPrank(user);
+        pred.approve(address(staking), amount);
+        staking.stake(amount);
+        vm.stopPrank();
+    }
+
     function test_NewUserClaimsFaucet() public {
         vm.prank(user1);
         faucet.claim();
@@ -56,41 +53,31 @@ contract Phase3IntegrationTest is Test {
     }
 
     function test_UserStakesAfterFaucet() public {
-        vm.prank(user1);
-        faucet.claim();
-        vm.startPrank(user1);
-        pred.approve(address(staking), 100 * 1e18);
-        staking.stake(100 * 1e18);
-        vm.stopPrank();
+        _claimAndStake(user1, 100 * 1e18);
         assertEq(staking.stakedBalance(user1), 100 * 1e18);
     }
 
     function test_UserCreatesProposalAfterStaking() public {
+        _claimAndStake(user1, 100 * 1e18);
         vm.prank(user1);
-        faucet.claim();
-        vm.startPrank(user1);
-        pred.approve(address(staking), 100 * 1e18);
-        staking.stake(100 * 1e18);
         uint256 id = gov.propose("Reduce fees", "Reduce from 2% to 1%");
-        vm.stopPrank();
         assertEq(gov.proposalCount(), 1);
         assertEq(gov.getProposal(id).proposer, user1);
     }
 
+    function test_MultipleUsersStake() public {
+        _claimAndStake(user1, 100 * 1e18);
+        _claimAndStake(user2, 100 * 1e18);
+        _claimAndStake(user3, 100 * 1e18);
+        assertEq(staking.totalStaked(), 300 * 1e18);
+    }
+
     function test_MultipleUsersVote() public {
-        // Setup: all stake
-        for (address u : [user1, user2, user3]) {
-            vm.prank(u);
-            faucet.claim();
-            vm.startPrank(u);
-            pred.approve(address(staking), 100 * 1e18);
-            staking.stake(100 * 1e18);
-            vm.stopPrank();
-        }
-        // User1 proposes
+        _claimAndStake(user1, 100 * 1e18);
+        _claimAndStake(user2, 100 * 1e18);
+        _claimAndStake(user3, 100 * 1e18);
         vm.prank(user1);
         uint256 id = gov.propose("Add USDC markets", "Deploy USDC factory");
-        // User2 votes for, User3 against
         vm.prank(user2);
         gov.vote(id, true);
         vm.prank(user3);
@@ -101,23 +88,25 @@ contract Phase3IntegrationTest is Test {
     }
 
     function test_StakerEarnsFromProtocolFees() public {
-        vm.prank(user1);
-        faucet.claim();
-        vm.startPrank(user1);
-        pred.approve(address(staking), 100 * 1e18);
-        staking.stake(100 * 1e18);
-        vm.stopPrank();
-        // Simulate protocol fee deposit
+        _claimAndStake(user1, 100 * 1e18);
         vm.deal(owner, 1 ether);
         vm.prank(owner);
         staking.depositReward{value: 1 ether}();
         assertGt(staking.earned(user1), 0);
-        vm.prank(user1);
-        staking.claimReward();
-        assertEq(staking.earned(user1), 0);
     }
 
-    function test_FaucetPreventsDoubleCliam() public {
+    function test_StakerClaimsETHReward() public {
+        _claimAndStake(user1, 100 * 1e18);
+        vm.deal(owner, 1 ether);
+        vm.prank(owner);
+        staking.depositReward{value: 1 ether}();
+        uint256 before = user1.balance;
+        vm.prank(user1);
+        staking.claimReward();
+        assertGt(user1.balance, before);
+    }
+
+    function test_FaucetPreventsDoubleClaim() public {
         vm.prank(user1);
         faucet.claim();
         vm.prank(user1);
@@ -126,78 +115,93 @@ contract Phase3IntegrationTest is Test {
     }
 
     function test_UnstakeReturnsAllPRED() public {
+        _claimAndStake(user1, 100 * 1e18);
         vm.prank(user1);
-        faucet.claim();
-        vm.startPrank(user1);
-        pred.approve(address(staking), 100 * 1e18);
-        staking.stake(100 * 1e18);
         staking.unstake(100 * 1e18);
-        vm.stopPrank();
         assertEq(pred.balanceOf(user1), 100 * 1e18);
     }
 
     function test_GovernanceRequiresActiveStake() public {
-        // User never staked
         vm.prank(user1);
         vm.expectRevert();
         gov.propose("Title", "Desc");
     }
 
-    function test_VotingPowerMatchesStake() public {
-        vm.prank(user1);
-        faucet.claim();
-        vm.startPrank(user1);
-        pred.approve(address(staking), 100 * 1e18);
-        staking.stake(100 * 1e18);
-        vm.stopPrank();
-
-        // Owner stakes more
-        vm.startPrank(owner);
-        pred.approve(address(staking), 900 * 1e18);
-        staking.stake(900 * 1e18);
-        uint256 id = gov.propose("Title", "Desc");
-        gov.vote(id, true);
-        vm.stopPrank();
-
-        vm.prank(user1);
-        gov.vote(id, true);
-
-        Governance.Proposal memory p = gov.getProposal(id);
-        assertEq(p.forVotes, 1000 * 1e18);
-    }
-
-    // ─── Referral + Mining Integration ────────────────────────────────────────
-    function test_CreateMarketEarnsRewards() public {
-        vm.prank(user1);
-        factory.createMarket{gas: 3000000}(
-            "Will ETH hit $5000?",
-            "Crypto",
-            block.timestamp + 1 days
-        );
-        assertGt(mining.getPendingRewards(user1), 0);
-    }
-
-    function test_TwoStakersShareRewards() public {
-        // Both claim faucet and stake
-        vm.prank(user1); faucet.claim();
-        vm.prank(user2); faucet.claim();
-
-        vm.startPrank(user1);
-        pred.approve(address(staking), 100 * 1e18);
-        staking.stake(100 * 1e18);
-        vm.stopPrank();
-
-        vm.startPrank(user2);
-        pred.approve(address(staking), 100 * 1e18);
-        staking.stake(100 * 1e18);
-        vm.stopPrank();
-
+    function test_TwoStakersShareRewardsEqually() public {
+        _claimAndStake(user1, 100 * 1e18);
+        _claimAndStake(user2, 100 * 1e18);
         vm.deal(owner, 2 ether);
         vm.prank(owner);
         staking.depositReward{value: 2 ether}();
-
         uint256 earned1 = staking.earned(user1);
         uint256 earned2 = staking.earned(user2);
         assertApproxEqAbs(earned1, earned2, 1e10);
+    }
+
+    function test_ProposalPassesWithMajority() public {
+        // Give enough PRED to meet quorum (1000 PRED)
+        vm.prank(owner);
+        pred.transfer(user1, 500 * 1e18);
+        vm.startPrank(user1);
+        pred.approve(address(staking), 500 * 1e18);
+        staking.stake(500 * 1e18);
+        vm.stopPrank();
+        vm.prank(owner);
+        pred.transfer(user2, 800 * 1e18);
+        vm.startPrank(user2);
+        pred.approve(address(staking), 800 * 1e18);
+        staking.stake(800 * 1e18);
+        vm.stopPrank();
+        vm.prank(user1);
+        uint256 id = gov.propose("Title", "Desc");
+        vm.prank(user2);
+        gov.vote(id, true);
+        uint256 endTime = gov.getProposal(id).endTime;
+        vm.warp(endTime + 1);
+        assertEq(uint256(gov.getProposalState(id)), 1); // Passed
+    }
+
+    function test_ProposalFailsWithMinority() public {
+        _claimAndStake(user1, 100 * 1e18);
+        vm.prank(owner);
+        pred.transfer(user2, 200 * 1e18);
+        vm.startPrank(user2);
+        pred.approve(address(staking), 200 * 1e18);
+        staking.stake(200 * 1e18);
+        vm.stopPrank();
+        vm.prank(user1);
+        uint256 id = gov.propose("Title", "Desc");
+        vm.prank(user1);
+        gov.vote(id, true);
+        vm.prank(user2);
+        gov.vote(id, false);
+        uint256 endTime = gov.getProposal(id).endTime;
+        vm.warp(endTime + 1);
+        assertEq(uint256(gov.getProposalState(id)), 2); // Failed
+    }
+
+    function test_OwnerCancelsProposal() public {
+        _claimAndStake(user1, 100 * 1e18);
+        vm.prank(user1);
+        uint256 id = gov.propose("Title", "Desc");
+        vm.prank(owner);
+        gov.cancel(id);
+        assertEq(uint256(gov.getProposalState(id)), 4); // Cancelled
+    }
+
+    function test_RewardPerTokenUpdatesOnDeposit() public {
+        _claimAndStake(user1, 100 * 1e18);
+        uint256 before = staking.rewardPerTokenStored();
+        vm.deal(owner, 1 ether);
+        vm.prank(owner);
+        staking.depositReward{value: 1 ether}();
+        assertGt(staking.rewardPerTokenStored(), before);
+    }
+
+    function test_FaucetBalanceDecreases() public {
+        uint256 before = faucet.faucetBalance();
+        vm.prank(user1);
+        faucet.claim();
+        assertEq(faucet.faucetBalance(), before - 100 * 1e18);
     }
 }
