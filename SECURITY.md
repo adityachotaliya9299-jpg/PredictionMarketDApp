@@ -1,5 +1,7 @@
 # Security Policy
 
+*Applies to the Verity Protocol (formerly PredictX) — contracts, subgraph, and frontend in this repository.*
+
 ## Supported Versions
 
 | Version | Network | Supported |
@@ -7,9 +9,12 @@
 | v2.0 (current) | Sepolia Testnet | ✅ Active |
 | Mainnet | — | ❌ Not deployed |
 
+
 > ⚠️ **PredictX has NOT been audited by a third-party security firm. Do NOT use with real mainnet funds.**
 
----
+
+> ⚠️ Verity has NOT been audited. Do NOT use with real mainnet funds.
+ (docs: update security policy for Verity v2, point to markdown security paper)
 
 ## Reporting a Vulnerability
 
@@ -134,4 +139,8 @@ Before any mainnet deployment, the following must be completed:
 
 ## Full Security Analysis
 
+
 See [docs/PredictX_SelfAudit.pdf](docs/PredictX_SelfAudit.pdf) for the complete threat model, vulnerability register, and remediation recommendations.
+
+See the [Security Paper](docs/SECURITY_PAPER.md) for the complete threat model, contract-level protections, known limitations, and the audit roadmap.
+(docs: update security policy for Verity v2, point to markdown security paper)
