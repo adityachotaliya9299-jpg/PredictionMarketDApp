@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { THEME_CRITICAL_CSS } from "@/lib/themeCritical";
 import { Providers } from "@/components/shared/Providers";
 import { Navbar } from "@/components/shared/Navbar";
 import { Footer } from "@/components/shared/Footer";
@@ -27,6 +28,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#0B0A08" },
+    { media: "(prefers-color-scheme: light)", color: "#F6F3EA" },
+  ],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
@@ -35,6 +43,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable}`}
     >
       <body suppressHydrationWarning>
+        {/* Design tokens ship inline so the theme survives a failed CSS chunk
+            (e.g. CDN skew right after a deploy). Source: lib/themeCritical.ts */}
+        <style id="verity-critical" dangerouslySetInnerHTML={{ __html: THEME_CRITICAL_CSS }} />
         <Providers>
           <Navbar />
           <main style={{ minHeight: "100vh" }}>{children}</main>
