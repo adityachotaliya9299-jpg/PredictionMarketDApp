@@ -6,11 +6,11 @@ import { getMarketStatus, CATEGORY_COLORS, type MarketMetadata } from "@/types/m
 import { useMarketInfo, useMarketProbability } from "@/hooks/useMarket";
 
 const STATUS_STYLES: Record<string, { color: string; bg: string; border: string; label: string }> = {
-  open:     { color:"#10b981", bg:"rgba(16,185,129,0.1)",  border:"rgba(16,185,129,0.2)",  label:"LIVE" },
-  expired:  { color:"#fbbf24", bg:"rgba(251,191,36,0.1)",  border:"rgba(251,191,36,0.2)",  label:"EXPIRED" },
-  resolved: { color:"#3b82f6", bg:"rgba(59,130,246,0.1)",  border:"rgba(59,130,246,0.2)",  label:"RESOLVED" },
-  paused:   { color:"#ef4444", bg:"rgba(239,68,68,0.1)",   border:"rgba(239,68,68,0.2)",   label:"PAUSED" },
-  invalid:  { color:"#6b7280", bg:"rgba(107,114,128,0.1)", border:"rgba(107,114,128,0.2)", label:"INVALID" },
+  open:     { color:"var(--up)", bg:"rgba(var(--up-rgb),0.1)",  border:"rgba(var(--up-rgb),0.2)",  label:"LIVE" },
+  expired:  { color:"var(--warn)", bg:"rgba(var(--warn-rgb),0.1)",  border:"rgba(var(--warn-rgb),0.2)",  label:"EXPIRED" },
+  resolved: { color:"var(--accent-2)", bg:"rgba(var(--accent2-rgb),0.1)",  border:"rgba(var(--accent2-rgb),0.2)",  label:"RESOLVED" },
+  paused:   { color:"var(--down)", bg:"rgba(var(--down-rgb),0.1)",   border:"rgba(var(--down-rgb),0.2)",   label:"PAUSED" },
+  invalid:  { color:"var(--faint)", bg:"rgba(var(--faint-rgb),0.1)", border:"rgba(var(--faint-rgb),0.2)", label:"INVALID" },
 };
 
 export function MarketCard({ market }: { market: MarketMetadata }) {
@@ -21,7 +21,7 @@ export function MarketCard({ market }: { market: MarketMetadata }) {
   const st = STATUS_STYLES[status] ?? STATUS_STYLES.open;
   const yesPct = probability ? formatProbabilityNumber(probability[0]) : 50;
   const noPct = 100 - yesPct;
-  const catColor = CATEGORY_COLORS[market.category] || "#6b7280";
+  const catColor = CATEGORY_COLORS[market.category] || "var(--faint)";
   const poolEth = info ? formatETH(info.totalPool) : "0 ETH";
   const timeLeft = formatTimeLeft(market.expirationTime);
 
@@ -29,21 +29,21 @@ export function MarketCard({ market }: { market: MarketMetadata }) {
     <Link href={`/markets/${market.marketAddress}`} style={{ textDecoration:"none", display:"block", height:"100%" }}>
       <div style={{
         position:"relative", height:"100%", borderRadius:16,
-        border:"1px solid rgba(255,255,255,0.07)",
-        background:"linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 100%)",
+        border:"1px solid rgba(var(--fg-rgb),0.07)",
+        background:"linear-gradient(135deg, rgba(var(--fg-rgb),0.04) 0%, transparent 100%)",
         padding:20, transition:"all 0.2s", cursor:"pointer",
         opacity: status==="paused" ? 0.6 : 1,
         boxSizing:"border-box",
       }}
         onMouseEnter={e=>{
-          (e.currentTarget as HTMLDivElement).style.borderColor="rgba(255,255,255,0.15)";
-          (e.currentTarget as HTMLDivElement).style.background="linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 100%)";
+          (e.currentTarget as HTMLDivElement).style.borderColor="rgba(var(--fg-rgb),0.15)";
+          (e.currentTarget as HTMLDivElement).style.background="linear-gradient(135deg, rgba(var(--fg-rgb),0.07) 0%, transparent 100%)";
           (e.currentTarget as HTMLDivElement).style.transform="translateY(-2px)";
           (e.currentTarget as HTMLDivElement).style.boxShadow="0 8px 32px rgba(0,0,0,0.3)";
         }}
         onMouseLeave={e=>{
-          (e.currentTarget as HTMLDivElement).style.borderColor="rgba(255,255,255,0.07)";
-          (e.currentTarget as HTMLDivElement).style.background="linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 100%)";
+          (e.currentTarget as HTMLDivElement).style.borderColor="rgba(var(--fg-rgb),0.07)";
+          (e.currentTarget as HTMLDivElement).style.background="linear-gradient(135deg, rgba(var(--fg-rgb),0.04) 0%, transparent 100%)";
           (e.currentTarget as HTMLDivElement).style.transform="translateY(0)";
           (e.currentTarget as HTMLDivElement).style.boxShadow="none";
         }}
@@ -58,27 +58,27 @@ export function MarketCard({ market }: { market: MarketMetadata }) {
               {st.label}
             </span>
           </div>
-          <ChevronRight size={16} color="#4b5563" style={{ flexShrink:0, marginTop:2 }}/>
+          <ChevronRight size={16} color="var(--faint-2)" style={{ flexShrink:0, marginTop:2 }}/>
         </div>
 
         {/* Question */}
-        <h3 style={{ color:"white", fontWeight:600, fontSize:14, lineHeight:1.5, marginBottom:20, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as const, overflow:"hidden" }}>
+        <h3 style={{ color:"var(--text)", fontWeight:600, fontSize:14, lineHeight:1.5, marginBottom:20, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" as const, overflow:"hidden" }}>
           {market.question}
         </h3>
 
         {/* Probability Bar */}
         <div style={{ marginBottom:16 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, fontFamily:"monospace", marginBottom:6 }}>
-            <span style={{ color:"#10b981", fontWeight:700 }}>YES {yesPct.toFixed(1)}%</span>
-            <span style={{ color:"#ef4444", fontWeight:700 }}>NO {noPct.toFixed(1)}%</span>
+          <div style={{ display:"flex", justifyContent:"space-between", fontSize:12, fontFamily:"var(--font-mono)", marginBottom:6 }}>
+            <span style={{ color:"var(--up)", fontWeight:700 }}>YES {yesPct.toFixed(1)}%</span>
+            <span style={{ color:"var(--down)", fontWeight:700 }}>NO {noPct.toFixed(1)}%</span>
           </div>
-          <div style={{ height:8, borderRadius:99, background:"rgba(255,255,255,0.06)", overflow:"hidden" }}>
-            <div style={{ height:"100%", width:`${yesPct}%`, background:"linear-gradient(90deg,#10b981,#22d3ee)", borderRadius:99, transition:"width 0.5s ease" }}/>
+          <div style={{ height:8, borderRadius:99, background:"rgba(var(--fg-rgb),0.06)", overflow:"hidden" }}>
+            <div style={{ height:"100%", width:`${yesPct}%`, background:"linear-gradient(90deg,var(--up),var(--accent))", borderRadius:99, transition:"width 0.5s ease" }}/>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", fontSize:12, color:"#6b7280" }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", fontSize:12, color:"var(--faint)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
             <TrendingUp size={13}/><span>{poolEth}</span>
           </div>
@@ -90,7 +90,7 @@ export function MarketCard({ market }: { market: MarketMetadata }) {
         {/* Paused overlay */}
         {status==="paused" && (
           <div style={{ position:"absolute", inset:0, borderRadius:16, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.5)", backdropFilter:"blur(4px)" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, color:"#ef4444", fontWeight:700, fontSize:14 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, color:"var(--down)", fontWeight:700, fontSize:14 }}>
               <Lock size={16}/>Market Paused
             </div>
           </div>
