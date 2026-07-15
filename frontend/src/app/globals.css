@@ -3,68 +3,12 @@
 @tailwind utilities;
 
 /* ------------------------------------------------------------------ */
-/* Verity design tokens — dark ("Obsidian") is the default theme.     */
-/* Every component, including inline styles, references these vars.   */
+/* NOTE: the Verity design tokens (:root / html.light), the body base */
+/* rule, .font-display, .gradient-text, and the pulse keyframes live  */
+/* in src/lib/themeCritical.ts and are inlined into the HTML by the   */
+/* root layout, so the theme survives a failed CSS chunk. Do not      */
+/* redefine them here.                                                */
 /* ------------------------------------------------------------------ */
-:root {
-  --bg: #0b0a08;
-  --bg-2: #14120d;
-  --text: #f4f1e8;
-  --text-2: #ddd8cb;
-  --muted: #a29d8f;
-  --faint: #8a8474;
-  --faint-2: #5c574b;
-  --fg-rgb: 244, 241, 232;
-
-  --accent: #e2c178;
-  --accent-2: #b98a2f;
-  --accent-3: #b4a0e8;
-  --on-accent: #14120d;
-  --accent-rgb: 226, 193, 120;
-  --accent2-rgb: 185, 138, 47;
-  --accent3-rgb: 180, 160, 232;
-
-  --up: #10b981;
-  --down: #e5484d;
-  --warn: #f5a623;
-  --up-rgb: 16, 185, 129;
-  --down-rgb: 229, 72, 77;
-  --warn-rgb: 245, 166, 35;
-  --faint-rgb: 138, 132, 116;
-
-  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35);
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Light — "Daybreak Ivory" */
-html.light {
-  --bg: #f6f3ea;
-  --bg-2: #fdfbf5;
-  --text: #1d1a13;
-  --text-2: #3a362b;
-  --muted: #6b6557;
-  --faint: #6e6858;
-  --faint-2: #8c8676;
-  --fg-rgb: 29, 26, 19;
-
-  --accent: #9a7b24;
-  --accent-2: #7a5e14;
-  --accent-3: #6d4fc3;
-  --on-accent: #fffdf5;
-  --accent-rgb: 154, 123, 36;
-  --accent2-rgb: 122, 94, 20;
-  --accent3-rgb: 109, 79, 195;
-
-  --up: #147a52;
-  --down: #c03538;
-  --warn: #a96a0a;
-  --up-rgb: 20, 122, 82;
-  --down-rgb: 192, 53, 56;
-  --warn-rgb: 169, 106, 10;
-  --faint-rgb: 110, 104, 88;
-
-  --shadow-card: 0 8px 32px rgba(29, 26, 19, 0.08);
-}
 
 *,
 *::before,
@@ -74,15 +18,6 @@ html.light {
 
 html {
   scroll-behavior: smooth;
-}
-
-body {
-  font-family: var(--font-sans), "Inter", system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::selection {
@@ -95,18 +30,6 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 6px;
-}
-
-.font-display {
-  font-family: var(--font-display), Georgia, serif;
-}
-
-/* Brand gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 /* Frosted raised surface */
@@ -149,16 +72,7 @@ textarea::placeholder {
   display: none !important;
 }
 
-/* Keyframes */
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
+/* Keyframes (pulse is inlined via themeCritical.ts) */
 @keyframes shimmer {
   0% {
     background-position: -400px 0;
