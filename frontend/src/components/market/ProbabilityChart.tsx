@@ -31,7 +31,7 @@ export function ProbabilityChart({ probability, totalPool }: ProbabilityChartPro
           className="absolute left-0 top-0 h-full rounded-full transition-all duration-700 ease-out"
           style={{
             width: `${yesPct}%`,
-            background: "linear-gradient(90deg, #10b981, #22d3ee)",
+            background: "linear-gradient(90deg, var(--up), var(--accent))",
           }}
         />
         {/* Midpoint line */}
