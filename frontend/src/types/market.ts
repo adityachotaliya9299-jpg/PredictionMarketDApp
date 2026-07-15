@@ -68,12 +68,12 @@ export const CATEGORIES = [
 export type Category = (typeof CATEGORIES)[number];
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  Crypto: "#f59e0b",
-  Politics: "#ef4444",
-  Sports: "#22c55e",
-  Science: "#3b82f6",
-  Entertainment: "#a855f7",
-  Economics: "#06b6d4",
+  Crypto: "var(--warn)",
+  Politics: "var(--down)",
+  Sports: "var(--up)",
+  Science: "var(--accent-2)",
+  Entertainment: "var(--accent-3)",
+  Economics: "var(--accent)",
   Technology: "#ec4899",
-  General: "#6b7280",
+  General: "var(--faint)",
 };
