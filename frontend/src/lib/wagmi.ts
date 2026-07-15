@@ -4,7 +4,7 @@ import { sepolia } from "wagmi/chains";
 import { http } from "wagmi";
 
 export const config = getDefaultConfig({
-  appName: "PredictX",
+  appName: "Verity",
   projectId: "99d0f6e45d84da0c3341e8ba35298dd1",
   chains: [sepolia],
   transports: {
