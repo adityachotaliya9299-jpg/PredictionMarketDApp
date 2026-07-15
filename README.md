@@ -1,3 +1,4 @@
+
 <div align="center">
 
 # PredictX
@@ -13,12 +14,33 @@
 **[Live Demo](https://prediction-market-d-app.vercel.app/) · [Subgraph](https://api.studio.thegraph.com/query/1744854/predict-x/v0.0.5) · [Whitepaper](docs/PredictX_Whitepaper_V2.pdf) · [Self-Audit](docs/PredictX_SelfAudit.pdf)**
 
 > ⚠️ Deployed on Ethereum Sepolia testnet only. Not audited. Do not use with real mainnet funds.
+# Verity — Markets in Truth
+
+<div align="center">
+
+<img src="frontend/public/logo.svg" alt="Verity" width="340"/>
+
+<br/><br/>
+
+[![Live Demo](https://img.shields.io/badge/Live_Demo-prediction--market--d--app.vercel.app-E2C178?style=flat-square&logo=vercel&logoColor=white&labelColor=0B0A08)](https://prediction-market-d-app.vercel.app/)
+[![Sepolia](https://img.shields.io/badge/Network-Sepolia_Testnet-B98A2F?style=flat-square&logo=ethereum&labelColor=0B0A08)](https://sepolia.etherscan.io/)
+[![License](https://img.shields.io/badge/License-MIT-E2C178?style=flat-square&labelColor=0B0A08)](LICENSE)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.24-B98A2F?style=flat-square&logo=solidity&labelColor=0B0A08)](https://soliditylang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-E2C178?style=flat-square&logo=next.js&labelColor=0B0A08)](https://nextjs.org/)
+
+**Verity** *(formerly PredictX)* **is a decentralized prediction market protocol on Ethereum.
+Every probability is set by the crowd, every settlement executed by code —
+parimutuel pools, on-chain oracles, no middlemen.**
+
+[Live Demo](https://prediction-market-d-app.vercel.app/) · [Whitepaper](docs/WHITEPAPER.md) · [Security Paper](docs/SECURITY_PAPER.md) · [Report Bug](https://github.com/adityachotaliya9299-jpg/PredictionMarketDApp/issues)
+ (docs: rewrite README under Verity brand with pricing model and doc index)
 
 </div>
 
 ---
 
 ## What is PredictX?
+
 
 PredictX is a **permissionless, trustless prediction market protocol** built on Ethereum. Anyone can:
 
@@ -30,6 +52,18 @@ PredictX is a **permissionless, trustless prediction market protocol** built on 
 - 🔗 **Refer** — Earn 0.5% of every ETH trade your referrals make
 
 Everything runs on-chain. No centralized backend. No middlemen. Automated payouts.
+- [Overview](#overview)
+- [How It Works](#how-it-works)
+- [Features](#features)
+- [Pricing Model](#pricing-model)
+- [Deployed Contracts](#deployed-contracts)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Documentation](#documentation)
+- [Design System](#design-system)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
@@ -49,8 +83,26 @@ Everything runs on-chain. No centralized backend. No middlemen. Automated payout
 - [Documentation](#documentation)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
+A prediction market is a machine that pays people for being right. Verity implements that machine with the fewest moving parts that can work:
 
----
+- **Create** YES/NO, multi-outcome (2–10), scalar, or USDC-denominated markets on any question with a verifiable answer
+- **Trade** by staking into outcome pools — the probability of an outcome *is* its share of the pool
+- **Settle** automatically: oracles resolve, winners split the entire pool pro-rata, on-chain
+- **Earn** PRED tokens for creating and trading, ETH for referrals (0.5% of referee volume), and protocol fee revenue by staking PRED
+- **Govern** fees, emissions, and treasury with PRED votes
+
+Because payouts are always a redistribution of exactly what the pool holds, the protocol has **zero counterparty risk by construction** — it can never owe more than it has.
+
+## How It Works
+
+```
+P(YES)  =  yesPool / (yesPool + noPool)              ← price discovery
+payout  =  (userShares / winningPool) × totalPool    ← settlement
+```
+
+1. **Take a position.** Stake ETH (or USDC) on the outcome you believe in. A 2% protocol fee applies at purchase.
+2. **The crowd sets the price.** No order book, no market maker — the pool ratio is the probability.
+3. **Truth pays out.** The oracle resolves; the contract redistributes the pool to the winning side. INVALID markets refund everyone.
 
 ## Features
 
@@ -82,8 +134,26 @@ Everything runs on-chain. No centralized backend. No middlemen. Automated payout
 | **The Graph** | Custom subgraph v0.0.5 for fast indexed queries |
 | **300+ Tests** | Foundry suite with unit, integration, fuzz, and invariant tests |
 | **Vercel Deployment** | Production frontend at prediction-market-d-app.vercel.app |
+| | Feature | Detail |
+|---|---|---|
+| ⚖️ | **Parimutuel engine** | Full-pool redistribution, deep liquidity from the first trade |
+| 🛰️ | **Oracle settlement** | Chainlink ETH/BTC feeds + on-chain resolution, staleness-checked |
+| 🪙 | **PRED rewards** | 100 PRED per market created, 10 PRED per trade, 100M hard cap |
+| 🤝 | **Referrals** | 0.5% of referee volume paid to referrers in ETH, bound once on-chain |
+| 🏦 | **Staking** | Stake PRED, earn protocol fees in ETH |
+| 🏛️ | **Governance** | PRED-weighted proposals & votes over fees, emissions, treasury |
+| 🎯 | **4 market types** | YES/NO · Multi-outcome · Scalar ranges · USDC stablecoin |
+| 🚰 | **Testnet faucet** | Rate-limited PRED faucet for onboarding |
 
----
+## Pricing Model
+
+Trading is never gated — the contracts are public infrastructure. Subscriptions exist only for professional tooling. Full details on the [pricing page](https://prediction-market-d-app.vercel.app/pricing).
+
+| Tier | Price | Includes |
+|---|---|---|
+| **Trader** | Free | Unlimited trading, PRED rewards, referrals, portfolio. Pays only the on-chain 2% fee + gas |
+| **Pro** | $29/mo | Analytics & probability history, API access, PRED fee rebates, priority resolution |
+| **Institutional** | Custom | White-label markets, dedicated oracle config, SLA support, compliance toolkit |
 
 ## Architecture
 
@@ -138,10 +208,12 @@ PredictX Protocol
 ```
 
 ---
+**On-chain fee:** 2% per trade (`feeBps = 200`), hard-capped at 5% by `MAX_FEE_BPS` — immutable per market, unraisable by anyone. Claims and market creation cost gas only.
 
 ## How It Works
 
 ### Parimutuel Model
+All contracts live on **Sepolia Testnet** (deployed under the PredictX codebase name):
 
 All ETH from all traders accumulates in a single pool. The probability of each outcome updates dynamically based on capital allocation:
 
@@ -284,7 +356,22 @@ Every trade by User B       → 0.5% of trade value goes to User A
 User A claims               → ETH sent directly to User A's wallet
 ```
 
----
+## Architecture
+
+```
+        ┌───────────────────────────────────────────────┐
+        │            Frontend — Next.js 14              │
+        │   wagmi/viem · RainbowKit · framer-motion     │
+        └────────────┬──────────────────┬───────────────┘
+                     │ reads (GraphQL)  │ writes (RPC)
+        ┌────────────▼─────┐   ┌────────▼───────────────┐
+        │  The Graph       │   │  Contracts (Foundry)   │
+        │  subgraph        │   │  factories → immutable │
+        └──────────────────┘   │  per-market pools      │
+                               └────────────────────────┘
+```
+
+Factories deploy immutable per-market contracts, so each market holds only its own pool — a compromised market can never touch another's funds.
 
 ## Tech Stack
 
@@ -304,6 +391,10 @@ User A claims               → ETH sent directly to User A's wallet
 | Package Manager | npm | Latest |
 
 ---
+**Contracts:** Solidity 0.8.24 · Foundry · OpenZeppelin · Chainlink
+**Frontend:** Next.js 14 (App Router) · TypeScript · wagmi v2 / viem · RainbowKit · framer-motion · Recharts · Tailwind CSS
+**Indexing:** The Graph (subgraph in [`predictx/`](predictx/))
+**Design:** Fraunces / Inter / JetBrains Mono, custom obsidian-and-gold token system ([brand.md](brand.md))
 
 ## Getting Started
 
@@ -343,6 +434,13 @@ forge install
 ```bash
 cd frontend
 cp .env.example .env.local
+### Run the Frontend
+
+```bash
+cd frontend
+cp .env.example .env.local   # fill in your values
+npm install
+npm run dev                  # or: npm run build && npm start
 ```
 
 Edit `.env.local` — only two values need updating:
@@ -358,6 +456,7 @@ NEXT_PUBLIC_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/your_api_key_here
 ```
 
 ### Run Locally
+### Run the Contract Tests
 
 ```bash
 # Terminal 1: Start frontend
@@ -560,6 +659,23 @@ const stake = async (amount: string) => writeContractAsync({
 ```
 
 ---
+The suite includes unit, integration, invariant, and fuzz tests (staking, governance, faucet, and full-journey Phase-3 flows).
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [Whitepaper](docs/WHITEPAPER.md) | Mechanism design, token economics, oracle architecture, roadmap |
+| [Security Paper](docs/SECURITY_PAPER.md) | Threat model, contract protections, known limitations, audit roadmap |
+| [Security Policy](SECURITY.md) | Vulnerability disclosure process |
+| [Brand Guide](brand.md) | Palette, typography, logo, voice |
+| [Changelog](CHANGELOG.md) | Release history |
+| [Contributing](CONTRIBUTING.md) | How to contribute |
+| [Dune Dashboard](docs/DuneDashboard.md) | Analytics queries |
+
+## Design System
+
+The UI is built on a token-driven theme — **Obsidian** (dark, default) and **Daybreak Ivory** (light) — defined entirely as CSS variables in [`frontend/src/app/globals.css`](frontend/src/app/globals.css). Champagne-gold accents, a Fraunces serif display face, canvas-rendered 3D golden terrain on the landing page, and slow scroll-reveal motion that respects `prefers-reduced-motion`. See [brand.md](brand.md).
 
 ## Security
 
@@ -634,7 +750,7 @@ chore: tooling/build
 
 - **Inline styles only** in frontend — no Tailwind classes
 - All contract reads must include `chainId: 11155111`
-- Use `BigInt()` not `0n` for zero values
+-- Use `BigInt()` not `0n` for zero values
 - All new contracts must have test coverage
 - Follow Checks-Effects-Interactions pattern for ETH transfers
 - Use custom errors instead of `require` strings
@@ -644,6 +760,11 @@ chore: tooling/build
 ## License
 
 MIT — see [LICENSE](LICENSE)
+Contributions are welcome — read [CONTRIBUTING.md](CONTRIBUTING.md) first. For security issues, follow [SECURITY.md](SECURITY.md) (never open a public issue).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ---
 
@@ -654,5 +775,7 @@ MIT — see [LICENSE](LICENSE)
 [Live Demo](https://prediction-market-d-app.vercel.app/) · [GitHub](https://github.com/adityachotaliya9299-jpg/PredictionMarketDApp) · [Subgraph](https://api.studio.thegraph.com/query/1744854/predict-x/v0.0.5)
 
 *Predict the Future, Earn from Truth*
+**⚠️ Testnet software. Unaudited. Do not use with real funds.**
 
+Built by [Aditya Chotaliya](https://portfolio-one-bice-xqt0376aiu.vercel.app/)
 </div>
